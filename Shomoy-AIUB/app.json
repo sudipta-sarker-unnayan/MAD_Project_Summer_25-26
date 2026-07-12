@@ -1,0 +1,34 @@
+{
+  "expo": {
+    "name": "Shomoy",
+    "slug": "shomoy",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "android",
+      "ios",
+      "web"
+    ],
+    "splash": {
+      "backgroundColor": "#0A2463"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.aiub.shomoy"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#0A2463"
+      },
+      "package": "com.aiub.shomoy"
+    },
+    "scheme": "shomoy",
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
