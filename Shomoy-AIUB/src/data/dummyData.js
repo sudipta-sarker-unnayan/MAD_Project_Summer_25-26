@@ -13,3 +13,41 @@ export const members = [
   { id: 'ADMIN-001',    name: 'Club Admin',               department: 'Admin', batch: '—',    bloodGroup: 'O+',  phone: '01512345678', role: 'Admin',  status: 'Active', joinDate: 'Jan 2023',      email: 'admin@aiub.edu'   },
 ];
 
+// ─── Events ──────────────────────────────────────────────────
+export const events = [
+  {
+    id: 'EVT-001',
+    title: 'Blood Donation Camp',
+    date: 'August 5, 2026',
+    location: 'AIUB Main Campus',
+    trackerStep: 1,        // 0: Planning, 1: Preparation, 2: In Progress, 3: Completed
+    committeeOpen: true,
+  },
+  {
+    id: 'EVT-002',
+    title: 'Winter Clothes Distribution',
+    date: 'August 20, 2026',
+    location: 'Mirpur Slum Area',
+    trackerStep: 0,
+    committeeOpen: false,
+  },
+];
+
+// ─── Blood Requests ──────────────────────────────────────────
+export const bloodRequests = [
+  {
+    id: 'BR-001',
+    bloodGroup: 'B+',
+    hospital: 'Square Hospital',
+    requester: 'Sudipta Sarker Unnayan',
+    date: 'July 18, 2026',
+    urgency: 'Urgent',
+    status: 'Active',
+  },
+];
+
+// ─── Notifications ───────────────────────────────────────────
+export const notifications = [
+  { id: 'N-001', type: 'event', title: 'New event added', body: 'Winter Clothes Distribution has been added to the events list.', time: '2h ago', read: false },
+  { id: 'N-002', type: 'committee', title: 'Your profile was updated', body: 'Your profile information was updated successfully.', time: '1d ago', read: true },
+];
