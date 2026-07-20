@@ -1,44 +1,139 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
+import { View, Text, StyleSheet } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+
+import { useAuth } from '../context/AuthContext';
 import { colors } from '../theme/colors';
 
-// ─── Temporary home screen ─────────────────────────────────────
+// Auth Screens
+import LoginScreen from '../screens/LoginScreen';
+import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 
-const HomeScreen = () => (
-  <View style={s.container}>
-    <Text style={s.logo}>SH</Text>
-    <Text style={s.title}>Shomoy</Text>
-    <Text style={s.sub}>AIUB Social Welfare Club</Text>
-    <Text style={s.hint}>App is running ✓{'\n'}</Text>
+// Main Screens
+import DashboardScreen from '../screens/DashboardScreen';
+import NotificationsScreen from '../screens/NotificationsScreen';
+import ProfileScreen from '../screens/ProfileScreen';
+
+const Tab = createBottomTabNavigator();
+const Stack = createStackNavigator();
+
+// ─── Notification badge dot ────────────────────────────────────
+const TabIcon = ({ name, focused, badgeCount }) => (
+  <View>
+    <Ionicons
+      name={focused ? name : `${name}-outline`}
+      size={24}
+      color={focused ? colors.primary : colors.tabInactive}
+    />
+    {badgeCount > 0 && (
+      <View style={styles.badge}>
+        <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+      </View>
+    )}
   </View>
 );
 
-const Stack = createStackNavigator();
-
-export default function AppNavigator() {
+// ─── Tab Navigator ─────────────────────────────────────────────
+const MainTabs = () => {
+  const insets = useSafeAreaInsets();
   return (
-    <Stack.Navigator
-      screenOptions={{
-        headerStyle:      { backgroundColor: colors.primary, elevation: 0, shadowOpacity: 0 },
-        headerTintColor:  '#fff',
-        headerTitleStyle: { fontWeight: '600', fontSize: 16 },
+  <Tab.Navigator
+    screenOptions={{
+      headerShown: false,
+      tabBarStyle: [styles.tabBar, { height: 60 + insets.bottom, paddingBottom: insets.bottom + 6 }],      tabBarActiveTintColor: colors.primary,
+      tabBarInactiveTintColor: colors.tabInactive,
+      tabBarLabelStyle: { fontSize: 11, fontWeight: '500', marginBottom: 4 },
+    }}
+  >
+    <Tab.Screen
+      name="Dashboard"
+      component={DashboardScreen}
+      options={{
+        tabBarLabel: 'Home',
+        tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
       }}
-    >
-      <Stack.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ title: 'Shomoy' }}
-      />
+    />
+    <Tab.Screen
+      name="Notifications"
+      component={NotificationsScreen}
+      options={{
+        tabBarLabel: 'Notification',
+        tabBarIcon: ({ focused }) => <TabIcon name="notifications" focused={focused} badgeCount={2} />,
+      }}
+    
+    />
+    <Tab.Screen
+      name="Profile"
+      component={ProfileScreen}
+      options={{
+        tabBarLabel: 'Profile',
+        tabBarIcon: ({ focused }) => <TabIcon name="person" focused={focused} />,
+      }}
+    />
+  </Tab.Navigator>
+);
+};
 
-    </Stack.Navigator>
-  );
-}
+// ─── Auth Stack ────────────────────────────────────────────────
+const AuthStack = () => (
+  <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Screen name="Login" component={LoginScreen} />
+    <Stack.Screen name="ForgotPassword" component={ForgotPasswordScreen} />
+  </Stack.Navigator>
+);
 
-const s = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', padding: 32 },
-  logo:  { fontSize: 64, color: colors.primary, fontWeight: '800', marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: '700', color: colors.textPrimary },
-  sub:   { fontSize: 14, color: colors.textSecondary, marginTop: 4, marginBottom: 32 },
-  hint:  { fontSize: 14, color: colors.textMuted, textAlign: 'center', lineHeight: 22, backgroundColor: colors.white, borderRadius: 12, padding: 16, borderWidth: 0.5, borderColor: colors.border },
+// ─── Main Stack (wraps the tab navigator; add detail/push screens here) ──
+const MainStack = () => (
+  <Stack.Navigator
+    screenOptions={{
+      headerStyle: { backgroundColor: colors.primary, elevation: 0, shadowOpacity: 0 },
+      headerTintColor: '#fff',
+      headerTitleStyle: { fontWeight: '600', fontSize: 16 },
+    }}
+  >
+    <Stack.Screen
+      name="MainTabs"
+      component={MainTabs}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen name="Dashboard"      component={DashboardScreen}      options={{ title: 'Dashboard' }} />
+   <Stack.Screen name="Notifications"      component={NotificationsScreen}      options={{ title: 'Notifications' }} />
+   <Stack.Screen name="Profile"      component={ProfileScreen}      options={{ title: 'Profile' }} />
+
+  
+  </Stack.Navigator>
+);
+
+// ─── Root Navigator — login থাকলে Main, না থাকলে Auth ─────────
+const AppNavigator = () => {
+  const { user } = useAuth();
+  return user ? <MainStack /> : <AuthStack />;
+};
+
+export default AppNavigator;
+
+const styles = StyleSheet.create({
+  tabBar: {
+    backgroundColor: colors.white,
+    borderTopWidth: 0.5,
+    borderTopColor: '#DDE3F0',
+    height: 60,
+    paddingTop: 6,
+  },
+  badge: {
+    position: 'absolute',
+    top: -4,
+    right: -8,
+    backgroundColor: colors.danger,
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: { color: '#fff', fontSize: 9, fontWeight: '700' },
 });

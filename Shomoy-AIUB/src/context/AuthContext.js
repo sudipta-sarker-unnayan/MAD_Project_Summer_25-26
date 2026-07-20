@@ -24,30 +24,45 @@ export const AuthProvider = ({ children }) => {
 
   // Login
   const login = async (memberId, password) => {
-    const cred = credentials.find(
-      c => c.id === memberId && c.password === password
-    );
-    if (!cred) return { success: false, message: 'Wrong ID or password' };
+    try {
+      const cred = credentials.find(
+        c => c.id === memberId && c.password === password
+      );
+      if (!cred) return { success: false, message: 'Wrong ID or password' };
 
-    const memberData = members.find(m => m.id === memberId);
-    const userData   = { ...memberData, role: cred.role };
+      const memberData = members.find(m => m.id === memberId);
+      const userData    = { ...memberData, role: cred.role };
 
-    await AsyncStorage.setItem('shomoy_user', JSON.stringify(userData));
-    setUser(userData);
-    return { success: true };
+      await AsyncStorage.setItem('shomoy_user', JSON.stringify(userData));
+      setUser(userData);
+      return { success: true };
+    } catch (e) {
+      console.log('Login error:', e);
+      return { success: false, message: 'Something went wrong, please try again.' };
+    }
   };
 
   // Logout
   const logout = async () => {
-    await AsyncStorage.removeItem('shomoy_user');
-    setUser(null);
+    try {
+      await AsyncStorage.removeItem('shomoy_user');
+      setUser(null);
+    } catch (e) {
+      console.log('Logout error:', e);
+    }
   };
 
   // Profile update
   const updateUser = async (data) => {
-    const updated = { ...user, ...data };
-    await AsyncStorage.setItem('shomoy_user', JSON.stringify(updated));
-    setUser(updated);
+    try {
+      const updated = { ...user, ...data };
+      await AsyncStorage.setItem('shomoy_user', JSON.stringify(updated));
+      setUser(updated);
+      return { success: true };
+    } catch (e) {
+      console.log('Update user error:', e);
+      return { success: false, message: 'Could not update profile, please try again.' };
+    }
   };
 
   return (

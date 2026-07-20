@@ -1,9 +1,25 @@
 import React from 'react';
 import {
   TouchableOpacity, Text, StyleSheet,
-  ActivityIndicator, TextInput, View,
+  ActivityIndicator, TextInput, View, Alert,
 } from 'react-native';
 import { colors } from '../theme/colors';
+
+// ─── safeNavigate ────────────────────────────────────────────────
+// Wraps navigation.navigate in try/catch so tapping a route that
+// isn't registered yet (e.g. a screen still under development)
+// shows a friendly message instead of crashing the app.
+export const safeNavigate = (navigation, screen, params) => {
+  try {
+    if (!navigation || typeof navigation.navigate !== 'function') {
+      throw new Error('Navigation is not available');
+    }
+    navigation.navigate(screen, params);
+  } catch (e) {
+    console.log(`Navigation error (${screen}):`, e);
+    Alert.alert('এখনো তৈরি হয়নি', 'এই স্ক্রিনটি এখনো তৈরি হয়নি, শীঘ্রই আসছে।');
+  }
+};
 
 // ─── PrimaryButton ─────────────────────────────────────────────
 export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
