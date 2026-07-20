@@ -1,4 +1,5 @@
 import React from 'react';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -21,20 +22,28 @@ const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // ─── Notification badge dot ────────────────────────────────────
-const TabIcon = ({ name, focused, badgeCount }) => (
-  <View>
-    <Ionicons
-      name={focused ? name : `${name}-outline`}
-      size={24}
-      color={focused ? colors.primary : colors.tabInactive}
-    />
-    {badgeCount > 0 && (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+const TabIcon = ({ name, focused, badgeCount }) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(focused ? 1.15 : 1, { damping: 10, stiffness: 150 }) }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <View>
+        <Ionicons
+          name={focused ? name : `${name}-outline`}
+          size={24}
+          color={focused ? colors.primary : colors.tabInactive}
+        />
+        {badgeCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+          </View>
+        )}
       </View>
-    )}
-  </View>
-);
+    </Animated.View>
+  );
+};
 
 // ─── Tab Navigator ─────────────────────────────────────────────
 const MainTabs = () => {

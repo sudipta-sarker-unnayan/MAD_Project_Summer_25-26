@@ -48,6 +48,6 @@ export const bloodRequests = [
 
 // ─── Notifications ───────────────────────────────────────────
 export const notifications = [
-  { id: 'N-001', type: 'event', title: 'New event added', body: 'Winter Clothes Distribution has been added to the events list.', time: '2h ago', read: false },
-  { id: 'N-002', type: 'committee', title: 'Your profile was updated', body: 'Your profile information was updated successfully.', time: '1d ago', read: true },
+  { id: 'N-001', title: 'New event added',        read: false },
+  { id: 'N-002', title: 'Your profile was updated', read: true  },
 ];

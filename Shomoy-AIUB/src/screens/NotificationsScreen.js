@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
+import { Swipeable } from 'react-native-gesture-handler';
 import { colors, safeNavigate } from '../components/index';
 import { notifications as initialNotifs } from '../data/dummyData';
+
 
 const typeIcon = { committee: 'people', selected: 'trophy', blood: 'heart', event: 'calendar' };
 const typeColor = { committee: colors.primary, selected: colors.success, blood: colors.accent, event: colors.warning };
@@ -45,7 +47,19 @@ export default function NotificationsScreen({ navigation }) {
 
   const unread = notifs.filter(n => !n.read).length;
 
+  const deleteNotif = (id) => {
+    setNotifs(prev => prev.filter(n => n.id !== id));
+  };
+
+  const renderRightActions = (item) => (
+    <TouchableOpacity style={styles.deleteAction} onPress={() => deleteNotif(item.id)}>
+      <Ionicons name="trash" size={22} color="#fff" />
+    </TouchableOpacity>
+  );
+
   const renderItem = ({ item }) => (
+        <Swipeable renderRightActions={() => renderRightActions(item)}>
+
     <TouchableOpacity
       style={[styles.item, !item.read && styles.itemUnread]}
       onPress={() => handlePress(item)}
@@ -68,6 +82,8 @@ export default function NotificationsScreen({ navigation }) {
       </View>
       {!item.read && <View style={styles.unreadDot} />}
     </TouchableOpacity>
+        </Swipeable>
+
   );
 
   return (
@@ -124,4 +140,5 @@ const styles = StyleSheet.create({
   joinBtnText: { fontSize: 12, fontWeight: '600', color: '#fff' },
   empty: { alignItems: 'center', marginTop: 60 },
   emptyText: { fontSize: 15, color: colors.textMuted, marginTop: 12 },
+  deleteAction: { backgroundColor: colors.danger, justifyContent: 'center', alignItems: 'center', width: 70, borderRadius: 14, marginBottom: 10 },
 });
