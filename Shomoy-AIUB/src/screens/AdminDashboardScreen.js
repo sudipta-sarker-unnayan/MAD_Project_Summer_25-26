@@ -1,12 +1,14 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
 import { Avatar, Badge, Card, colors, safeNavigate } from '../components/index';
-import { events, members, bloodRequests } from '../data/dummyData';
+import { members, bloodRequests } from '../data/dummyData';
+import { getEvents } from '../services/eventService';
 
 const QuickAction = ({ icon, label, color, onPress }) => (
   <TouchableOpacity style={styles.qaItem} onPress={onPress} activeOpacity={0.8}>
@@ -28,14 +30,21 @@ export default function AdminDashboardScreen({ navigation }) {
   const { user, logout } = useAuth();
   const { unreadCount } = useAppData();
   const [refreshing, setRefreshing] = useState(false);
+  const [events, setEvents] = useState([]);
+
+  const loadEvents = useCallback(async () => {
+    setEvents(await getEvents());
+  }, []);
+
+  useFocusEffect(useCallback(() => { loadEvents(); }, [loadEvents]));
 
   const activeMembers   = useMemo(() => members.filter(m => m.role !== 'Admin'), []);
-  const openCommittees  = useMemo(() => events.filter(e => e.committeeOpen), []);
+  const openCommittees  = useMemo(() => events.filter(e => e.committeeOpen), [events]);
   const activeBloodReqs = useMemo(() => bloodRequests.filter(b => b.status === 'Active'), []);
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+    loadEvents().finally(() => setRefreshing(false));
   };
 
   return (

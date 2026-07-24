@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -7,13 +7,15 @@ import {
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { SkeletonBox } from '../components/Skeleton';
 import { useAuth } from '../context/AuthContext';
-import { Avatar, Badge, Card, colors } from '../components/index';
-import { events, bloodRequests } from '../data/dummyData';
+import { Avatar, Badge, Card, colors, safeNavigate } from '../components/index';
+import { bloodRequests } from '../data/dummyData';
+import { getEvents } from '../services/eventService';
 import { useAppData } from '../context/AppDataContext';
 import { sendLocalNotification } from '../utils/notify';
 
@@ -39,6 +41,13 @@ const StatCard = ({ label, value, color }) => (
 
 export default function DashboardScreen({ navigation }) {
   const { user, logout } = useAuth();
+  const [events, setEvents] = useState([]);
+
+  const loadEvents = useCallback(async () => {
+    setEvents(await getEvents());
+  }, []);
+
+  useFocusEffect(useCallback(() => { loadEvents(); }, [loadEvents]));
 
   const upcomingEvents = events
     .filter((e) => e.trackerStep < 3)
@@ -72,7 +81,7 @@ const { unreadCount: unreadNotifs } = useAppData();
 
   const onRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 800);
+    loadEvents().finally(() => setRefreshing(false));
   };
 
   return (
@@ -97,7 +106,7 @@ const { unreadCount: unreadNotifs } = useAppData();
           </View>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('Notifications')}
+            onPress={() => safeNavigate(navigation, 'Notifications')}
           >
             <View style={styles.notifBtn}>
               <Ionicons name="notifications" size={22} color="#fff" />
@@ -145,7 +154,7 @@ const { unreadCount: unreadNotifs } = useAppData();
           </View>
 
           <TouchableOpacity
-            onPress={() => navigation.navigate('DigitalIDCard')}
+            onPress={() => safeNavigate(navigation, 'DigitalIDCard')}
           >
             <Ionicons
               name="id-card-outline"
@@ -221,7 +230,7 @@ const { unreadCount: unreadNotifs } = useAppData();
                 icon="calendar"
                 label="Events"
                 color={colors.primary}
-                onPress={() => navigation.navigate('Events')}
+                onPress={() => safeNavigate(navigation, 'Events')}
               />
 
               <QuickAction
@@ -229,7 +238,7 @@ const { unreadCount: unreadNotifs } = useAppData();
                 label="Blood"
                 color={colors.accent}
                 onPress={() =>
-                  navigation.navigate('BloodRequest')
+                  safeNavigate(navigation, 'BloodRequest')
                 }
               />
 
@@ -238,7 +247,7 @@ const { unreadCount: unreadNotifs } = useAppData();
                 label="Members"
                 color="#7C3AED"
                 onPress={() =>
-                  navigation.navigate('MemberSearch')
+                  safeNavigate(navigation, 'MemberSearch')
                 }
               />
 
@@ -246,7 +255,7 @@ const { unreadCount: unreadNotifs } = useAppData();
                 icon="chatbubbles"
                 label="Chat"
                 color="#0891B2"
-                onPress={() => navigation.navigate('Chat')}
+                onPress={() => safeNavigate(navigation, 'Chat')}
               />
 
               <QuickAction
@@ -254,7 +263,7 @@ const { unreadCount: unreadNotifs } = useAppData();
                 label="ID Card"
                 color="#059669"
                 onPress={() =>
-                  navigation.navigate('DigitalIDCard')
+                  safeNavigate(navigation, 'DigitalIDCard')
                 }
               />
 
@@ -262,12 +271,17 @@ const { unreadCount: unreadNotifs } = useAppData();
                 icon="person"
                 label="Profile"
                 color="#D97706"
-                onPress={() => navigation.navigate('Profile')}
+                onPress={() => safeNavigate(navigation, 'Profile')}
               />
             </View>
 
             {/* Upcoming Events */}
-            <Text style={styles.sectionTitle}>Upcoming Events</Text>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionTitle}>Upcoming Events</Text>
+              <TouchableOpacity onPress={() => safeNavigate(navigation, 'Events')}>
+                <Text style={styles.seeAllText}>সব দেখুন</Text>
+              </TouchableOpacity>
+            </View>
 
             {upcomingEvents.map((event, index) => (
               <Animated.View
@@ -276,7 +290,7 @@ const { unreadCount: unreadNotifs } = useAppData();
               >
                 <TouchableOpacity
                   onPress={() =>
-                    navigation.navigate('EventDetail', {
+                    safeNavigate(navigation, 'EventDetail', {
                       event,
                     })
                   }
@@ -317,6 +331,23 @@ const { unreadCount: unreadNotifs } = useAppData();
                         />
                       )}
                     </View>
+
+                    {/* Announcement */}
+                    {!!event.announcement && (
+                      <View style={styles.announcementBox}>
+                        <Ionicons
+                          name="megaphone"
+                          size={14}
+                          color={colors.warning}
+                        />
+                        <Text
+                          style={styles.announcementText}
+                          numberOfLines={3}
+                        >
+                          {event.announcement}
+                        </Text>
+                      </View>
+                    )}
 
                     {/* Mini tracker */}
                     <View style={styles.miniTracker}>
@@ -515,6 +546,33 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: colors.textSecondary,
     marginTop: 2,
+  },
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    marginTop: 4,
+  },
+  seeAllText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  announcementBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+    backgroundColor: colors.warning + '15',
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 12,
+  },
+  announcementText: {
+    flex: 1,
+    fontSize: 12,
+    color: colors.textPrimary,
+    lineHeight: 17,
   },
   sectionTitle: {
     fontSize: 16,

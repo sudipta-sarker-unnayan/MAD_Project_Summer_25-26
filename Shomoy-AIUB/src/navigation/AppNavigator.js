@@ -15,14 +15,15 @@ import LoginScreen from '../screens/LoginScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 
 // Main Screens
-import DashboardScreen from '../screens/DashboardScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
-import ProfileScreen from '../screens/ProfileScreen';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import MemberDashboardScreen from '../screens/MemberDashboardScreen';
 import AdminProfileScreen from '../screens/AdminProfileScreen';
 import MemberProfileScreen from '../screens/MemberProfileScreen';
-
+import EventManageScreen from '../screens/EventManageScreen';
+//import EventsScreen from '../screens/EventsScreen';
+import EventDetailAdminScreen from '../screens/EventDetailAdminScreen';
+import ApplicantReviewScreen from '../screens/ApplicantReviewScreen';
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -119,10 +120,9 @@ const MainStack = () => (
       component={MainTabs}
       options={{ headerShown: false }}
     />
-    <Stack.Screen name="Dashboard"      component={DashboardScreen}      options={{ title: 'Dashboard' }} />
-   <Stack.Screen name="Notifications"      component={NotificationsScreen}      options={{ title: 'Notifications' }} />
-   <Stack.Screen name="Profile"      component={ProfileScreen}      options={{ title: 'Profile' }} />
-
+    <Stack.Screen name="EventManage" component={EventManageScreen} options={{ title: 'ইভেন্ট ম্যানেজ' }} />
+    <Stack.Screen name="EventDetailAdmin" component={EventDetailAdminScreen} options={{ title: 'ইভেন্ট নিয়ন্ত্রণ' }} />
+    <Stack.Screen name="ApplicantReview" component={ApplicantReviewScreen} options={{ title: 'আবেদনকারী' }} />
   
   </Stack.Navigator>
 );
