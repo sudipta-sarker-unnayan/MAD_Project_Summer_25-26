@@ -7,6 +7,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
+import { useAppData } from '../context/AppDataContext';
 import { colors } from '../theme/colors';
 
 // Auth Screens
@@ -48,6 +49,8 @@ const TabIcon = ({ name, focused, badgeCount }) => {
 // ─── Tab Navigator ─────────────────────────────────────────────
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
+    const { unreadCount } = useAppData();
+
   return (
   <Tab.Navigator
     screenOptions={{
@@ -70,8 +73,7 @@ const MainTabs = () => {
       component={NotificationsScreen}
       options={{
         tabBarLabel: 'Notification',
-        tabBarIcon: ({ focused }) => <TabIcon name="notifications" focused={focused} badgeCount={2} />,
-      }}
+tabBarIcon: ({ focused }) => <TabIcon name="notifications" focused={focused} badgeCount={unreadCount} />,      }}
     
     />
     <Tab.Screen

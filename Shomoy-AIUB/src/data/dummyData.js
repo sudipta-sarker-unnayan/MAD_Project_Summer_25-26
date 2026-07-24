@@ -1,6 +1,6 @@
 // ─── Login credentials ─────────────────────────────────────────
 export const credentials = [
-  { id: 'SWC-2024-001', password: '123456',   role: 'Member' },
+  { id: 'SUDIPTA', password: '123456',   role: 'Member' },
   { id: 'ADMIN-001',    password: 'admin123', role: 'Admin'  },
 ];
 
@@ -20,8 +20,8 @@ export const events = [
     title: 'Blood Donation Camp',
     date: 'August 5, 2026',
     location: 'AIUB Main Campus',
-    trackerStep: 1,        // 0: Planning, 1: Preparation, 2: In Progress, 3: Completed
-    committeeOpen: true,
+    trackerStep: 2,        // 0: Planning, 1: Preparation, 2: In Progress, 3: Completed
+    committeeOpen: false,
   },
   {
     id: 'EVT-002',
@@ -29,7 +29,7 @@ export const events = [
     date: 'August 20, 2026',
     location: 'Mirpur Slum Area',
     trackerStep: 0,
-    committeeOpen: false,
+    committeeOpen: true,
   },
 ];
 

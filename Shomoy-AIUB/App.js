@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from './src/context/AuthContext';
+import { AppDataProvider } from './src/context/AppDataContext';
 import AppNavigator from './src/navigation/AppNavigator';
 import { registerForNotifications } from './src/utils/notify';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -14,10 +15,12 @@ export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>  
       <AuthProvider>
-        <NavigationContainer>
-          <StatusBar style="light" />
-          <AppNavigator />
-        </NavigationContainer>
+        <AppDataProvider>
+          <NavigationContainer>
+            <StatusBar style="light" />
+            <AppNavigator />
+          </NavigationContainer>
+        </AppDataProvider>
       </AuthProvider>
   </GestureHandlerRootView>
   );

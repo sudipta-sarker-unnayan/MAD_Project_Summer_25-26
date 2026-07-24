@@ -4,22 +4,14 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { Swipeable } from 'react-native-gesture-handler';
 import { colors, safeNavigate } from '../components/index';
-import { notifications as initialNotifs } from '../data/dummyData';
-
+import { useAppData } from '../context/AppDataContext';
 
 const typeIcon = { committee: 'people', selected: 'trophy', blood: 'heart', event: 'calendar' };
 const typeColor = { committee: colors.primary, selected: colors.success, blood: colors.accent, event: colors.warning };
 
 export default function NotificationsScreen({ navigation }) {
-  const [notifs, setNotifs] = useState(initialNotifs);
 
-  const markRead = (id) => {
-    try {
-      setNotifs(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
-    } catch (e) {
-      console.log('markRead error:', e);
-    }
-  };
+const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData();
 
   const handlePress = (item) => {
     try {
@@ -37,19 +29,10 @@ export default function NotificationsScreen({ navigation }) {
     }
   };
 
-  const markAllRead = () => {
-    try {
-      setNotifs(prev => prev.map(n => ({ ...n, read: true })));
-    } catch (e) {
-      console.log('markAllRead error:', e);
-    }
-  };
-
+  
   const unread = notifs.filter(n => !n.read).length;
 
-  const deleteNotif = (id) => {
-    setNotifs(prev => prev.filter(n => n.id !== id));
-  };
+  
 
   const renderRightActions = (item) => (
     <TouchableOpacity style={styles.deleteAction} onPress={() => deleteNotif(item.id)}>
