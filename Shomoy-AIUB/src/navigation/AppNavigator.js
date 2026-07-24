@@ -18,6 +18,11 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+import MemberDashboardScreen from '../screens/MemberDashboardScreen';
+import AdminProfileScreen from '../screens/AdminProfileScreen';
+import MemberProfileScreen from '../screens/MemberProfileScreen';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
@@ -49,7 +54,11 @@ const TabIcon = ({ name, focused, badgeCount }) => {
 // ─── Tab Navigator ─────────────────────────────────────────────
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
-    const { unreadCount } = useAppData();
+  const { unreadCount } = useAppData();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
+  const DashboardComponent = isAdmin ? AdminDashboardScreen : MemberDashboardScreen;
+  const ProfileComponent   = isAdmin ? AdminProfileScreen   : MemberProfileScreen;
 
   return (
   <Tab.Navigator
@@ -62,7 +71,7 @@ const MainTabs = () => {
   >
     <Tab.Screen
       name="Dashboard"
-      component={DashboardScreen}
+      component={DashboardComponent}
       options={{
         tabBarLabel: 'Home',
         tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
@@ -78,7 +87,7 @@ tabBarIcon: ({ focused }) => <TabIcon name="notifications" focused={focused} bad
     />
     <Tab.Screen
       name="Profile"
-      component={ProfileScreen}
+      component={ProfileComponent}
       options={{
         tabBarLabel: 'Profile',
         tabBarIcon: ({ focused }) => <TabIcon name="person" focused={focused} />,
