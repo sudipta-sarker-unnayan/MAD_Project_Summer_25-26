@@ -1,4 +1,5 @@
 import React from 'react';
+import Animated, { useAnimatedStyle, withSpring } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -6,6 +7,7 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { useAuth } from '../context/AuthContext';
+import { useAppData } from '../context/AppDataContext';
 import { colors } from '../theme/colors';
 
 // Auth Screens
@@ -16,29 +18,48 @@ import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import DashboardScreen from '../screens/DashboardScreen';
 import NotificationsScreen from '../screens/NotificationsScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import AdminDashboardScreen from '../screens/AdminDashboardScreen';
+import MemberDashboardScreen from '../screens/MemberDashboardScreen';
+import AdminProfileScreen from '../screens/AdminProfileScreen';
+import MemberProfileScreen from '../screens/MemberProfileScreen';
+
 
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
 // ─── Notification badge dot ────────────────────────────────────
-const TabIcon = ({ name, focused, badgeCount }) => (
-  <View>
-    <Ionicons
-      name={focused ? name : `${name}-outline`}
-      size={24}
-      color={focused ? colors.primary : colors.tabInactive}
-    />
-    {badgeCount > 0 && (
-      <View style={styles.badge}>
-        <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+const TabIcon = ({ name, focused, badgeCount }) => {
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: withSpring(focused ? 1.15 : 1, { damping: 10, stiffness: 150 }) }],
+  }));
+
+  return (
+    <Animated.View style={animatedStyle}>
+      <View>
+        <Ionicons
+          name={focused ? name : `${name}-outline`}
+          size={24}
+          color={focused ? colors.primary : colors.tabInactive}
+        />
+        {badgeCount > 0 && (
+          <View style={styles.badge}>
+            <Text style={styles.badgeText}>{badgeCount > 9 ? '9+' : badgeCount}</Text>
+          </View>
+        )}
       </View>
-    )}
-  </View>
-);
+    </Animated.View>
+  );
+};
 
 // ─── Tab Navigator ─────────────────────────────────────────────
 const MainTabs = () => {
   const insets = useSafeAreaInsets();
+  const { unreadCount } = useAppData();
+  const { user } = useAuth();
+  const isAdmin = user?.role === 'Admin';
+  const DashboardComponent = isAdmin ? AdminDashboardScreen : MemberDashboardScreen;
+  const ProfileComponent   = isAdmin ? AdminProfileScreen   : MemberProfileScreen;
+
   return (
   <Tab.Navigator
     screenOptions={{
@@ -50,7 +71,7 @@ const MainTabs = () => {
   >
     <Tab.Screen
       name="Dashboard"
-      component={DashboardScreen}
+      component={DashboardComponent}
       options={{
         tabBarLabel: 'Home',
         tabBarIcon: ({ focused }) => <TabIcon name="home" focused={focused} />,
@@ -61,13 +82,12 @@ const MainTabs = () => {
       component={NotificationsScreen}
       options={{
         tabBarLabel: 'Notification',
-        tabBarIcon: ({ focused }) => <TabIcon name="notifications" focused={focused} badgeCount={2} />,
-      }}
+tabBarIcon: ({ focused }) => <TabIcon name="notifications" focused={focused} badgeCount={unreadCount} />,      }}
     
     />
     <Tab.Screen
       name="Profile"
-      component={ProfileScreen}
+      component={ProfileComponent}
       options={{
         tabBarLabel: 'Profile',
         tabBarIcon: ({ focused }) => <TabIcon name="person" focused={focused} />,

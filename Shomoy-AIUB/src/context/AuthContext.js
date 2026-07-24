@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { credentials, members } from '../data/dummyData';
+import { sendLocalNotification } from '../utils/notify';
 
 const AuthContext = createContext();
 
@@ -35,6 +36,7 @@ export const AuthProvider = ({ children }) => {
 
       await AsyncStorage.setItem('shomoy_user', JSON.stringify(userData));
       setUser(userData);
+      sendLocalNotification('Welcome back', `${userData.name}`);
       return { success: true };
     } catch (e) {
       console.log('Login error:', e);

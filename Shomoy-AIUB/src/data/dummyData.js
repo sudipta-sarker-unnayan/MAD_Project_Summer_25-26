@@ -1,6 +1,6 @@
 // ─── Login credentials ─────────────────────────────────────────
 export const credentials = [
-  { id: 'SWC-2024-001', password: '123456',   role: 'Member' },
+  { id: 'SUDIPTA', password: '123456',   role: 'Member' },
   { id: 'ADMIN-001',    password: 'admin123', role: 'Admin'  },
 ];
 
@@ -20,8 +20,8 @@ export const events = [
     title: 'Blood Donation Camp',
     date: 'August 5, 2026',
     location: 'AIUB Main Campus',
-    trackerStep: 1,        // 0: Planning, 1: Preparation, 2: In Progress, 3: Completed
-    committeeOpen: true,
+    trackerStep: 2,        // 0: Planning, 1: Preparation, 2: In Progress, 3: Completed
+    committeeOpen: false,
   },
   {
     id: 'EVT-002',
@@ -29,7 +29,7 @@ export const events = [
     date: 'August 20, 2026',
     location: 'Mirpur Slum Area',
     trackerStep: 0,
-    committeeOpen: false,
+    committeeOpen: true,
   },
 ];
 
@@ -48,6 +48,6 @@ export const bloodRequests = [
 
 // ─── Notifications ───────────────────────────────────────────
 export const notifications = [
-  { id: 'N-001', type: 'event', title: 'New event added', body: 'Winter Clothes Distribution has been added to the events list.', time: '2h ago', read: false },
-  { id: 'N-002', type: 'committee', title: 'Your profile was updated', body: 'Your profile information was updated successfully.', time: '1d ago', read: true },
+  { id: 'N-001', title: 'New event added',        read: false },
+  { id: 'N-002', title: 'Your profile was updated', read: true  },
 ];
