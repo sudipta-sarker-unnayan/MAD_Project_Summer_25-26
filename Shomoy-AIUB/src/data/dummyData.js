@@ -106,7 +106,48 @@ export const bloodRequests = [
     status: 'Fulfilled',
   },
 ];
+// ─── ADD THIS BLOCK TO dummyData.js ───────────────────────────
+// Paste this near the other export const arrays (e.g. after bloodRequests)
 
+export const donationDrives = [
+  {
+    id: 'DD-001',
+    title: 'Winter Relief Fund',
+    description: 'শীতার্ত মানুষদের জন্য কম্বল ও শীতবস্ত্র কেনার জন্য অর্থ সংগ্রহ অভিযান।',
+    goalAmount: 50000,
+    raisedAmount: 32500,
+    deadline: '2026-08-25',
+    status: 'Active',
+    donors: [
+      { userId: 'SWC-2024-001', name: 'Sudipta Sarker Unnayan', amount: 500,  date: '2026-07-15T10:00:00.000Z' },
+      { userId: 'SWC-2024-002', name: 'Mahbub Md Eftikhar',     amount: 1000, date: '2026-07-18T10:00:00.000Z' },
+    ],
+  },
+  {
+    id: 'DD-002',
+    title: 'Flood Relief Campaign',
+    description: 'বন্যা দুর্গতদের জন্য জরুরি ত্রাণ সহায়তা তহবিল সংগ্রহ।',
+    goalAmount: 100000,
+    raisedAmount: 100000,
+    deadline: '2026-07-10',
+    status: 'Completed',
+    donors: [
+      { userId: 'SWC-2024-003', name: 'Md Sarwar Jahangir', amount: 2000, date: '2026-06-20T10:00:00.000Z' },
+    ],
+  },
+  {
+    id: 'DD-003',
+    title: 'Orphanage Support Drive',
+    description: 'স্থানীয় এতিমখানার শিক্ষা উপকরণ ও খাদ্য সহায়তার জন্য তহবিল সংগ্রহ।',
+    goalAmount: 30000,
+    raisedAmount: 8000,
+    deadline: '2026-09-15',
+    status: 'Active',
+    donors: [
+      { userId: 'SWC-2024-004', name: 'Nusrat Jahan Mim', amount: 800, date: '2026-07-25T10:00:00.000Z' },
+    ],
+  },
+];
 // ─── Notifications ───────────────────────────────────────────
 export const notifications = [
   { id: 'N-001', type: 'event',     title: 'নতুন ইভেন্ট প্রকাশিত হয়েছে',      body: 'Winter Clothes Distribution — কমিটির জন্য আবেদন শুরু হয়েছে।', time: 'July 15, 2026', read: false },

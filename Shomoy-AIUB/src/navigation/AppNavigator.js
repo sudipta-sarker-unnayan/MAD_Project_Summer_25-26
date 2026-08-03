@@ -10,6 +10,11 @@ import { useAuth } from '../context/AuthContext';
 import { useAppData } from '../context/AppDataContext';
 import { colors } from '../theme/colors';
 
+import EventsListScreen from '../screens/EventsListScreen';
+import EventDetailScreen from '../screens/EventDetailScreen';
+import CommitteeApplyScreen from '../screens/CommitteeApplyScreen';
+import DonationDriveScreen from '../screens/DonationDriveScreen';
+import BloodRequestScreen from '../screens/BloodRequestScreen';
 // Auth Screens
 import LoginScreen from '../screens/LoginScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
@@ -123,6 +128,11 @@ const MainStack = () => (
     <Stack.Screen name="EventManage" component={EventManageScreen} options={{ title: 'ইভেন্ট ম্যানেজ' }} />
     <Stack.Screen name="EventDetailAdmin" component={EventDetailAdminScreen} options={{ title: 'ইভেন্ট নিয়ন্ত্রণ' }} />
     <Stack.Screen name="ApplicantReview" component={ApplicantReviewScreen} options={{ title: 'আবেদনকারী' }} />
+    <Stack.Screen name="Events" component={EventsListScreen} options={{ title: 'Events' }} />
+    <Stack.Screen name="EventDetail" component={EventDetailScreen} options={{ title: 'ইভেন্ট ডিটেইলস' }} />
+    <Stack.Screen name="CommitteeApply" component={CommitteeApplyScreen} options={{ title: 'কমিটি আবেদন' }} />
+    <Stack.Screen name="DonationDrive" component={DonationDriveScreen} options={{ headerShown: false }} />
+    <Stack.Screen name="BloodRequest" component={BloodRequestScreen} options={{ headerShown: false }} />
   
   </Stack.Navigator>
 );
