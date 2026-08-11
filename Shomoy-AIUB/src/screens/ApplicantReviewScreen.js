@@ -6,17 +6,26 @@ import { Card, PrimaryButton, colors } from '../components/index';
 import { getEventById, selectApplicants, publishSelection } from '../services/eventService';
 
 export default function ApplicantReviewScreen({ route }) {
-  const { eventId } = route.params;
+  const eventId = route?.params?.eventId;
   const [event, setEvent] = useState(null);
   const [selected, setSelected] = useState([]);
   const [publishing, setPublishing] = useState(false);
 
   const load = async () => {
+    if (!eventId) return;
     const e = await getEventById(eventId);
     setEvent(e);
     setSelected(e ? e.applicants.filter(a => a.status === 'selected').map(a => a.userId) : []);
   };
   useFocusEffect(useCallback(() => { load(); }, [eventId]));
+
+  if (!eventId) {
+    return (
+      <View style={styles.container}>
+        <Text style={styles.empty}>কোনো ইভেন্ট নির্বাচন করা হয়নি। অনুগ্রহ করে ইভেন্ট ম্যানেজ থেকে আসুন।</Text>
+      </View>
+    );
+  }
 
   if (!event) return <View style={styles.container} />;
 

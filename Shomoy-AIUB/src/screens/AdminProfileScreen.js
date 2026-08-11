@@ -34,7 +34,7 @@ export default function AdminProfileScreen({ navigation }) {
         <Text style={styles.sectionTitle}>অ্যাডমিন প্যানেল</Text>
         <Card style={{ padding: 4 }}>
           <MenuItem icon="calendar"       label="ইভেন্ট ও কমিটি ম্যানেজ"   onPress={() => safeNavigate(navigation, 'EventManage')} />
-          <MenuItem icon="people"         label="আবেদনকারী পর্যালোচনা"     onPress={() => safeNavigate(navigation, 'ApplicantReview')} />
+          <MenuItem icon="people"         label="আবেদনকারী পর্যালোচনা"     onPress={() => safeNavigate(navigation, 'EventManage')} />
           <MenuItem icon="droplet"        label="ব্লাড রিকোয়েস্ট ওভারভিউ" onPress={() => safeNavigate(navigation, 'BloodRequest')} />
           <MenuItem icon="person-circle"  label="মেম্বার ম্যানেজমেন্ট"    onPress={() => safeNavigate(navigation, 'MemberSearch')} />
         </Card>
