@@ -9,7 +9,7 @@ const loadAll = async () => {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-    // প্রথমবার — dummyData দিয়ে seed, নতুন ফিল্ডগুলো ডিফল্ট ভ্যালু দিয়ে যোগ
+    
     const seeded = seedEvents.map(e => ({
       description: '',
       time: '',
