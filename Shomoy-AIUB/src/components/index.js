@@ -1,7 +1,8 @@
 import React from 'react';
+import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import {
   TouchableOpacity, Text, StyleSheet,
-  ActivityIndicator, TextInput, View,
+  ActivityIndicator, TextInput, View, Alert,
 } from 'react-native';
 import { colors } from '../theme/colors';
 
@@ -21,8 +22,37 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
       ? <ActivityIndicator color="#fff" />
       : <Text style={s.primaryBtnText}>{title}</Text>
     }
-  </TouchableOpacity>
-);
+    navigation.navigate(screen, params);
+  } catch (e) {
+    console.log(`Navigation error (${screen}):`, e);
+    Alert.alert('এখনো তৈরি হয়নি', 'এই স্ক্রিনটি এখনো তৈরি হয়নি, শীঘ্রই আসছে।');
+  }
+};
+
+// ─── PrimaryButton ─────────────────────────────────────────────
+export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
+  const scale = useSharedValue(1); // এটার জন্য useSharedValue ও import করো reanimated থেকে
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  return (
+    <AnimatedTouchable
+      style={[s.primaryBtn, (disabled || loading) && s.disabledBtn, style, animatedStyle]}
+      onPress={onPress}
+      onPressIn={() => { scale.value = withTiming(0.96, { duration: 100 }); }}
+      onPressOut={() => { scale.value = withTiming(1, { duration: 100 }); }}
+      disabled={loading || disabled}
+      activeOpacity={0.85}
+    >
+      {loading
+        ? <ActivityIndicator color="#fff" />
+        : <Text style={s.primaryBtnText}>{title}</Text>
+      }
+    </AnimatedTouchable>
+  );
+};
 
 // ─── SecondaryButton ───────────────────────────────────────────
 export const SecondaryButton = ({ title, onPress, style }) => (
