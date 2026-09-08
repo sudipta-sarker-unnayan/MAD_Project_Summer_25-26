@@ -1,86 +1,73 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { notifications as seedNotifications } from '../data/dummyData';
+import api from './api';
 
-const STORAGE_KEY = 'shomoy_notifications';
-const genId = () => `N-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+const mapNotif = (n) => ({
+  id: n.id,
+  recipientId: n.recipient_id,
+  type: n.type,
+  title: n.title,
+  body: n.body,
+  relatedId: n.related_id,
+  read: n.read,
+  time: n.created_at ? new Date(n.created_at).toLocaleString('bn-BD') : '',
+});
 
-const loadAll = async () => {
+export const getNotificationsFor = async (userId) => {
   try {
-    const raw = await AsyncStorage.getItem(STORAGE_KEY);
-    if (raw) return JSON.parse(raw);
-    // প্রথমবার — dummyData দিয়ে seed, সবাইকে broadcast ধরা হচ্ছে
-    const seeded = seedNotifications.map(n => ({
-      recipientId: 'broadcast',
-      type: n.type || 'event',
-      body: n.body || '',
-      time: n.time || '',
-      ...n,
-    }));
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
-    return seeded;
+    const { data } = await api.get(`/notifications/${userId}`);
+    return data.map(mapNotif);
   } catch (e) {
-    console.log('notificationService loadAll error:', e);
+    console.log('getNotificationsFor error:', e);
     return [];
   }
 };
 
-const saveAll = async (list) => {
+export const getUnreadCount = async (userId) => {
   try {
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+    const { data } = await api.get(`/notifications/${userId}/unread-count`);
+    return data.count;
+  } catch (e) {
+    console.log('getUnreadCount error:', e);
+    return 0;
+  }
+};
+
+export const markRead = async (id) => {
+  try {
+    await api.patch(`/notifications/${id}/read`);
     return true;
   } catch (e) {
-    console.log('notificationService saveAll error:', e);
+    console.log('markRead error:', e);
     return false;
   }
 };
 
-export const getNotificationsFor = async (userId) => {
-  const all = await loadAll();
-  return all.filter(n => n.recipientId === userId || n.recipientId === 'broadcast');
-};
-
-export const getUnreadCount = async (userId) => {
-  const mine = await getNotificationsFor(userId);
-  return mine.filter(n => !n.read).length;
-};
-
-export const markRead = async (id) => {
-  const all = await loadAll();
-  const updated = all.map(n => (n.id === id ? { ...n, read: true } : n));
-  await saveAll(updated);
-  return updated;
-};
-
 export const markAllRead = async (userId) => {
-  const all = await loadAll();
-  const updated = all.map(n =>
-    (n.recipientId === userId || n.recipientId === 'broadcast') ? { ...n, read: true } : n
-  );
-  await saveAll(updated);
-  return updated;
+  try {
+    await api.patch(`/notifications/${userId}/read-all`);
+    return true;
+  } catch (e) {
+    console.log('markAllRead error:', e);
+    return false;
+  }
 };
 
 export const deleteNotification = async (id) => {
-  const all = await loadAll();
-  const updated = all.filter(n => n.id !== id);
-  await saveAll(updated);
-  return updated;
+  try {
+    await api.delete(`/notifications/${id}`);
+    return true;
+  } catch (e) {
+    console.log('deleteNotification error:', e);
+    return false;
+  }
 };
 
-// ব্যাকএন্ড আসলে ভবিষ্যতে এই ফাংশনটাই socket/API পুশ কল করবে
+// ব্যাকএন্ড এখন সরাসরি ইভেন্ট রুট থেকেই নোটিফিকেশন পাঠায়; সরাসরি পাঠাতে চাইলে (যেমন BloodRequestScreen থেকে) এটা ব্যবহার করুন
 export const pushNotification = async ({ recipientId, type, title, body = '', relatedId = null }) => {
-  const all = await loadAll();
-  const newNotif = {
-    id: genId(),
-    recipientId,      // নির্দিষ্ট userId, অথবা 'broadcast'
-    type,             // 'event' | 'selected' | 'blood' | 'committee'
-    title,
-    body,
-    relatedId,
-    read: false,
-    time: new Date().toLocaleString('bn-BD'),
-  };
-  const updated = [newNotif, ...all];
-  await saveAll(updated);
-  return newNotif;
+  try {
+    const { data } = await api.post('/notifications', { recipientId, type, title, body, relatedId });
+    return data;
+  } catch (e) {
+    console.log('pushNotification error:', e);
+    return null;
+  }
 };
