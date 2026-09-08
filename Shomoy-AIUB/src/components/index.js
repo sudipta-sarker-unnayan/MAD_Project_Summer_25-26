@@ -8,9 +8,6 @@ import { colors } from '../theme/colors';
 
 const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
 // ─── safeNavigate ────────────────────────────────────────────────
-// Wraps navigation.navigate in try/catch so tapping a route that
-// isn't registered yet (e.g. a screen still under development)
-// shows a friendly message instead of crashing the app.
 export const safeNavigate = (navigation, screen, params) => {
   try {
     if (!navigation || typeof navigation.navigate !== 'function') {
@@ -25,7 +22,7 @@ export const safeNavigate = (navigation, screen, params) => {
 
 // ─── PrimaryButton ─────────────────────────────────────────────
 export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
-  const scale = useSharedValue(1); // এটার জন্য useSharedValue ও import করো reanimated থেকে
+  const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -39,6 +36,9 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
       onPressOut={() => { scale.value = withTiming(1, { duration: 100 }); }}
       disabled={loading || disabled}
       activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+      accessibilityState={{ disabled: !!(loading || disabled), busy: !!loading }}
     >
       {loading
         ? <ActivityIndicator color="#fff" />
@@ -50,7 +50,13 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
 
 // ─── SecondaryButton ───────────────────────────────────────────
 export const SecondaryButton = ({ title, onPress, style }) => (
-  <TouchableOpacity style={[s.secondaryBtn, style]} onPress={onPress} activeOpacity={0.8}>
+  <TouchableOpacity
+    style={[s.secondaryBtn, style]}
+    onPress={onPress}
+    activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+  >
     <Text style={s.secondaryBtnText}>{title}</Text>
   </TouchableOpacity>
 );
