@@ -24,6 +24,8 @@ const QuickAction = ({ icon, label, color, onPress }) => (
     style={styles.qaItem}
     onPress={onPress}
     activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityLabel={label}
   >
     <View style={[styles.qaIcon, { backgroundColor: color + '18' }]}>
       <Ionicons name={icon} size={22} color={color} />
@@ -43,10 +45,19 @@ export default function DashboardScreen({ navigation }) {
   const { user, logout } = useAuth();
   const [events, setEvents] = useState([]);
 
-  const loadEvents = useCallback(async () => {
-    setEvents(await getEvents());
-  }, []);
+ const [error, setError] = useState(null);
 
+  const loadEvents = useCallback(async () => {
+    try {
+      setError(null);
+      setEvents(await getEvents());
+    } catch (e) {
+      console.log('loadEvents error:', e);
+      setError('events could not be loaded. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
   useFocusEffect(useCallback(() => { loadEvents(); }, [loadEvents]));
 
   const upcomingEvents = events
@@ -74,11 +85,7 @@ const { unreadCount: unreadNotifs } = useAppData();
     }
   }, [urgentBlood]);
 
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 700);
-    return () => clearTimeout(t);
-  }, []);
-
+  
   const onRefresh = () => {
     setRefreshing(true);
     loadEvents().finally(() => setRefreshing(false));
@@ -107,6 +114,8 @@ const { unreadCount: unreadNotifs } = useAppData();
 
           <TouchableOpacity
             onPress={() => safeNavigate(navigation, 'Notifications')}
+            accessibilityRole="button"
+            accessibilityLabel= "see notification"
           >
             <View style={styles.notifBtn}>
               <Ionicons name="notifications" size={22} color="#fff" />
@@ -155,6 +164,8 @@ const { unreadCount: unreadNotifs } = useAppData();
 
           <TouchableOpacity
             onPress={() => safeNavigate(navigation, 'DigitalIDCard')}
+            accessibilityRole="button"
+            accessibilityLabel= "see digital ID card"
           >
             <Ionicons
               name="id-card-outline"
@@ -166,6 +177,20 @@ const { unreadCount: unreadNotifs } = useAppData();
       </View>
 
       <View style={styles.body}>
+         {error && !loading && (
+          <View style={styles.errorBox}>
+            <Ionicons name="cloud-offline-outline" size={20} color={colors.accent} />
+            <Text style={styles.errorText}>{error}</Text>
+            <TouchableOpacity
+              style={styles.retryBtn}
+              onPress={loadEvents}
+              accessibilityRole="button"
+              accessibilityLabel="try again to load events"
+            >
+              <Text style={styles.retryText}>try again</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         {loading ? (
           <>
             <SkeletonBox
@@ -278,8 +303,11 @@ const { unreadCount: unreadNotifs } = useAppData();
             {/* Upcoming Events */}
             <View style={styles.sectionHeaderRow}>
               <Text style={styles.sectionTitle}>Upcoming Events</Text>
-              <TouchableOpacity onPress={() => safeNavigate(navigation, 'Events')}>
-                <Text style={styles.seeAllText}>সব দেখুন</Text>
+              <TouchableOpacity onPress={() => safeNavigate(navigation, 'Events')}
+                accessibilityRole="button"
+                accessibilityLabel="see all events"
+              >
+                <Text style={styles.seeAllText}>view all</Text>
               </TouchableOpacity>
             </View>
 
@@ -294,6 +322,8 @@ const { unreadCount: unreadNotifs } = useAppData();
                       event,
                     })
                   }
+                  accessibilityRole="button"
+                  accessibilityLabel={`see details of ${event.title} event`}
                 >
                   <Card>
                     <View style={styles.eventRow}>
@@ -438,6 +468,8 @@ const { unreadCount: unreadNotifs } = useAppData();
             <TouchableOpacity
               style={styles.logoutBtn}
               onPress={logout}
+              accessibilityRole="button"
+              accessibilityLabel="logout from the app"
             >
               <Ionicons
                 name="log-out-outline"
@@ -706,4 +738,25 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.accent,
   },
+    errorBox: {
+    backgroundColor: '#FEF2F2',
+    borderRadius: 12,
+    padding: 14,
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  errorText: {
+    color: colors.accent,
+    fontSize: 13,
+    textAlign: 'center',
+    marginTop: 6,
+    marginBottom: 10,
+  },
+  retryBtn: {
+    backgroundColor: colors.accent,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  retryText: { color: '#fff', fontWeight: '600', fontSize: 13 },
 });

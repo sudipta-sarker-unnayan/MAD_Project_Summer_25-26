@@ -15,9 +15,9 @@ export default function LoginScreen({ navigation }) {
   // ─── Validation ──────────────────────────────────────────────
   const validate = () => {
     const e = {};
-    if (!memberId.trim())  e.memberId = 'সদস্য আইডি দিন।';
-    if (!password)         e.password = 'পাসওয়ার্ড দিন।';
-    else if (password.length < 6) e.password = 'পাসওয়ার্ড কমপক্ষে ৬ অক্ষর হতে হবে।';
+    if (!memberId.trim())  e.memberId = 'Give your member ID.';
+    if (!password)         e.password = 'Give your password.';
+    else if (password.length < 6) e.password = 'Password must be at least 6 characters long.';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -29,10 +29,10 @@ export default function LoginScreen({ navigation }) {
   try {
     const result = await login(memberId.trim(), password);
     if (!result.success) {
-      Alert.alert('লগইন ব্যর্থ', result.message);
+      Alert.alert('Login Failed', result.message);
     }
   } catch (err) {
-    Alert.alert('ত্রুটি', 'কিছু একটা ভুল হয়েছে, আবার চেষ্টা করুন।');
+    Alert.alert('Error', 'Something went wrong, please try again.');
   } finally {
     setLoading(false);
   }
@@ -81,6 +81,8 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity
             style={styles.showPassRow}
             onPress={() => setShowPass(v => !v)}
+            accessibilityRole="button"
+            accessibilityLabel={showPass? 'hide password' : 'show password'}
           >
             <Text style={styles.showPassText}>
               {showPass ? 'Hide Password' : 'Show Password'}
@@ -97,6 +99,8 @@ export default function LoginScreen({ navigation }) {
           <TouchableOpacity
             style={styles.forgotBtn}
             onPress={() => safeNavigate(navigation, 'ForgotPassword')}
+            accessibilityRole="button"
+             accessibilityLabel="are you forgot password? reset here"
           >
             <Text style={styles.forgotText}>Forgot Password?</Text>
           </TouchableOpacity>

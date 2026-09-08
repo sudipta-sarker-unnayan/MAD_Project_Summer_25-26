@@ -5,7 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { Avatar, Badge, Card, colors, safeNavigate } from '../components/index';
 
 const MenuItem = ({ icon, label, onPress, danger }) => (
-  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.8}>
+  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+  >
     <View style={[styles.menuIcon, { backgroundColor: (danger ? colors.accent : colors.primary) + '12' }]}>
       <Ionicons name={icon} size={18} color={danger ? colors.accent : colors.primary} />
     </View>
@@ -36,40 +39,40 @@ export default function ProfileScreen({ navigation }) {
         <View style={styles.statsRow}>
           <View style={styles.statItem}>
             <Text style={styles.statVal}>{user?.department || 'CSE'}</Text>
-            <Text style={styles.statLabel}>বিভাগ</Text>
+            <Text style={styles.statLabel}>Dept.</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statVal}>{user?.batch || '47th'}</Text>
-            <Text style={styles.statLabel}>ব্যাচ</Text>
+            <Text style={styles.statLabel}>Batch</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statVal}>{user?.joinDate || 'Jan 2024'}</Text>
-            <Text style={styles.statLabel}>যোগদান</Text>
+            <Text style={styles.statLabel}>Join Date</Text>
           </View>
         </View>
 
         {/* Account */}
-        <Text style={styles.sectionTitle}>অ্যাকাউন্ট</Text>
+        <Text style={styles.sectionTitle}>Account</Text>
         <Card style={{ padding: 4 }}>
-          <MenuItem icon="person-outline"    label="প্রোফাইল সম্পাদনা"    onPress={() => safeNavigate(navigation, 'EditProfile')} />
-          <MenuItem icon="lock-closed-outline" label="পাসওয়ার্ড পরিবর্তন" onPress={() => safeNavigate(navigation, 'ChangePassword')} />
-          <MenuItem icon="id-card-outline"   label="ডিজিটাল আইডি কার্ড" onPress={() => safeNavigate(navigation, 'DigitalIDCard')} />
+          <MenuItem icon="person-outline"    label="Edit Profile"    onPress={() => safeNavigate(navigation, 'EditProfile')} />
+          <MenuItem icon="lock-closed-outline" label="Change Password" onPress={() => safeNavigate(navigation, 'ChangePassword')} />
+          <MenuItem icon="id-card-outline"   label="Digital ID Card" onPress={() => safeNavigate(navigation, 'DigitalIDCard')} />
         </Card>
 
         {/* Club */}
-        <Text style={styles.sectionTitle}>ক্লাব</Text>
+        <Text style={styles.sectionTitle}>Club</Text>
         <Card style={{ padding: 4 }}>
-          <MenuItem icon="calendar-outline"  label="ইভেন্ট দেখুন"     onPress={() => safeNavigate(navigation, 'Events')} />
-          <MenuItem icon="droplet-outline"   label="রক্তের অনুরোধ"   onPress={() => safeNavigate(navigation, 'BloodRequest')} />
-          <MenuItem icon="people-outline"    label="সদস্য খুঁজুন"    onPress={() => safeNavigate(navigation, 'MemberSearch')} />
+          <MenuItem icon="calendar-outline"  label="View Events"     onPress={() => safeNavigate(navigation, 'Events')} />
+          <MenuItem icon="droplet-outline"   label="Blood Request"   onPress={() => safeNavigate(navigation, 'BloodRequest')} />
+          <MenuItem icon="people-outline"    label="Find Members"    onPress={() => safeNavigate(navigation, 'MemberSearch')} />
         </Card>
 
         {/* Logout */}
         <Text style={styles.sectionTitle}> </Text>
         <Card style={{ padding: 4 }}>
-          <MenuItem icon="log-out-outline" label="লগআউট" onPress={logout} danger />
+          <MenuItem icon="log-out-outline" label="Logout" onPress={logout} danger />
         </Card>
 
         <Text style={styles.footer}>AIUB Social Welfare Club – শময় · v1.0.0</Text>

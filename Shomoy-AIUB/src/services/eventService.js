@@ -24,14 +24,9 @@ const mapEvent = (e) => ({
 });
 
 export const getEvents = async () => {
-  try {
-    const { data } = await api.get('/events');
-    return data.map(mapEvent);
-  } catch (e) {
-    console.log('getEvents error:', e);
-    return [];
-  }
-};
+  const { data } = await api.get('/events');
+  return data.map(mapEvent);
+}
 
 export const getActiveEvents = async () => {
   const all = await getEvents();
