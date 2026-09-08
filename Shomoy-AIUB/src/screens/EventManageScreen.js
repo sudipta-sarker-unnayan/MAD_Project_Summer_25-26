@@ -46,7 +46,6 @@ export default function EventManageScreen({ navigation }) {
 
   const [saving, setSaving] = useState(false);
 
-  // Reset deadline modal
   const [deadlineModal, setDeadlineModal] = useState({
     visible: false,
     eventId: null,
@@ -68,14 +67,12 @@ export default function EventManageScreen({ navigation }) {
 
   const handleCreate = async () => {
     if (!form.title || !form.date) {
-      Alert.alert('তথ্য প্রয়োজন', 'শিরোনাম ও তারিখ দিন');
+      Alert.alert('Information Required', 'Please enter a title and date');
       return;
     }
 
     setSaving(true);
-
     await createEvent(form);
-
     setSaving(false);
 
     setForm({
@@ -120,8 +117,8 @@ export default function EventManageScreen({ navigation }) {
   const confirmDeadline = async () => {
     if (!deadlineModal.value.trim()) {
       Alert.alert(
-        'তথ্য প্রয়োজন',
-        'নতুন Deadline লিখুন (যেমন: 2026-08-10T18:00)'
+        'Information Required',
+        'Please enter a new Deadline (e.g., 2026-08-10T18:00)'
       );
       return;
     }
@@ -149,6 +146,8 @@ export default function EventManageScreen({ navigation }) {
     <TouchableOpacity
       style={styles.newBtn}
       onPress={() => setShowForm(!showForm)}
+      accessibilityRole="button"
+      accessibilityLabel={showForm ? 'Close form button' : 'Create new event button'}
     >
       <Ionicons
         name={showForm ? 'close' : 'add-circle'}
@@ -156,59 +155,59 @@ export default function EventManageScreen({ navigation }) {
         color={colors.primary}
       />
       <Text style={styles.newBtnText}>
-        {showForm ? 'ফর্ম বন্ধ করুন' : 'নতুন ইভেন্ট তৈরি করুন'}
+        {showForm ? 'Close Form' : 'Create New Event'}
       </Text>
     </TouchableOpacity>
 
     {showForm && (
       <Card>
         <InputField
-          label="শিরোনাম"
+          label="title"
           value={form.title}
           onChangeText={t => setForm({ ...form, title: t })}
         />
 
         <InputField
-          label="বিবরণ"
+          label="description"
           value={form.description}
           onChangeText={t => setForm({ ...form, description: t })}
           multiline
         />
 
         <InputField
-          label="তারিখ (যেমন: August 5, 2026)"
+          label="date (like: August 5, 2026)"
           value={form.date}
           onChangeText={t => setForm({ ...form, date: t })}
         />
 
         <InputField
-          label="সময়"
+          label="time (like: 18:00)"
           value={form.time}
           onChangeText={t => setForm({ ...form, time: t })}
         />
 
         <InputField
-          label="স্থান"
+          label="place (like: AIUB Auditorium)"
           value={form.location}
           onChangeText={t => setForm({ ...form, location: t })}
         />
 
         <InputField
-          label="আবেদনের Deadline (YYYY-MM-DDTHH:mm)"
+          label="Application Deadline (YYYY-MM-DDTHH:mm)"
           value={form.applyDeadline}
           onChangeText={t => setForm({ ...form, applyDeadline: t })}
           placeholder="2026-08-05T18:00"
         />
 
         <PrimaryButton
-          title="তৈরি করুন"
+          title="Create Event"
           onPress={handleCreate}
           loading={saving}
         />
       </Card>
     )}
 
-    <Text style={styles.sectionTitle}>সব ইভেন্ট</Text>
+    <Text style={styles.sectionTitle}>All Events</Text>
 
     {events.map(event => (
       <Card key={event.id}>
@@ -218,6 +217,8 @@ export default function EventManageScreen({ navigation }) {
               eventId: event.id,
             })
           }
+          accessibilityRole="button"
+          accessibilityLabel={`View details for ${event.title} button`}
         >
           <View style={styles.row}>
             <View style={{ flex: 1 }}>
@@ -235,7 +236,7 @@ export default function EventManageScreen({ navigation }) {
             </View>
 
             <Badge
-              label={event.committeeOpen ? 'খোলা' : 'বন্ধ'}
+              label={event.committeeOpen ? 'open' : 'closed'}
               color={
                 event.committeeOpen
                   ? colors.success
@@ -250,6 +251,8 @@ export default function EventManageScreen({ navigation }) {
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => handlePublish(event.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Publish ${event.title} button`}
             >
               <Text style={styles.actionText}>Publish</Text>
             </TouchableOpacity>
@@ -257,6 +260,8 @@ export default function EventManageScreen({ navigation }) {
             <TouchableOpacity
               style={styles.actionBtn}
               onPress={() => handleClose(event.id)}
+              accessibilityRole="button"
+              accessibilityLabel={`Close ${event.title} button`}
             >
               <Text style={styles.actionText}>Close</Text>
             </TouchableOpacity>
@@ -267,6 +272,8 @@ export default function EventManageScreen({ navigation }) {
             onPress={() =>
               openDeadlineModal(event.id, event.applyDeadline)
             }
+            accessibilityRole="button"
+            accessibilityLabel={`Reset deadline for ${event.title} button`}
           >
             <Text style={styles.actionText}>Reset Deadline</Text>
           </TouchableOpacity>
@@ -278,8 +285,10 @@ export default function EventManageScreen({ navigation }) {
                 eventId: event.id,
               })
             }
+            accessibilityRole="button"
+            accessibilityLabel={`View applicants for ${event.title} button`}
           >
-            <Text style={styles.actionText}>আবেদনকারী</Text>
+            <Text style={styles.actionText}>View Applicants</Text>
           </TouchableOpacity>
         </View>
       </Card>
@@ -294,7 +303,7 @@ export default function EventManageScreen({ navigation }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalBox}>
           <Text style={styles.modalTitle}>
-            নতুন Deadline সেট করুন
+            set new deadline (YYYY-MM-DDTHH:mm)
           </Text>
 
           <InputField
@@ -309,13 +318,13 @@ export default function EventManageScreen({ navigation }) {
 
           <View style={styles.modalActions}>
             <SecondaryButton
-              title="বাতিল"
+              title="cancel"
               onPress={closeDeadlineModal}
               style={{ flex: 1, marginRight: 8 }}
             />
 
             <PrimaryButton
-              title="নিশ্চিত করুন"
+              title="confirm"
               onPress={confirmDeadline}
               loading={savingDeadline}
               style={{ flex: 1 }}

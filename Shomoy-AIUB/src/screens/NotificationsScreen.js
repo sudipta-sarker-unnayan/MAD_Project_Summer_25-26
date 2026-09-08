@@ -19,8 +19,7 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
       if (item.type === 'committee' && item.eventId) {
         safeNavigate(navigation, 'Events');
       } else if (item.type === 'selected' && item.groupLink) {
-        // expo-linking দিয়ে group chat এ যাওয়া
-        safeNavigate(navigation, 'GroupChat', { eventId: item.eventId, title: 'ইভেন্ট গ্রুপ চ্যাট' });
+        safeNavigate(navigation, 'GroupChat', { eventId: item.eventId, title: 'Event Group Chat' });
       } else if (item.type === 'blood') {
         safeNavigate(navigation, 'BloodRequest');
       }
@@ -29,13 +28,15 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
     }
   };
 
-  
   const unread = notifs.filter(n => !n.read).length;
 
-  
-
   const renderRightActions = (item) => (
-    <TouchableOpacity style={styles.deleteAction} onPress={() => deleteNotif(item.id)}>
+    <TouchableOpacity
+      style={styles.deleteAction}
+      onPress={() => deleteNotif(item.id)}
+      accessibilityRole="button"
+      accessibilityLabel={`Delete ${item.title} notification button`}
+    >
       <Ionicons name="trash" size={22} color="#fff" />
     </TouchableOpacity>
   );
@@ -47,6 +48,8 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
       style={[styles.item, !item.read && styles.itemUnread]}
       onPress={() => handlePress(item)}
       activeOpacity={0.8}
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title} notification${!item.read ? ', unread' : ''}`}
     >
       <View style={[styles.iconBox, { backgroundColor: typeColor[item.type] + '18' }]}>
         <Ionicons name={typeIcon[item.type]} size={20} color={typeColor[item.type]} />
@@ -56,10 +59,14 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
         <Text style={styles.body} numberOfLines={2}>{item.body}</Text>
         <Text style={styles.time}>{item.time}</Text>
 
-        {/* Action button for "selected" type */}
         {item.type === 'selected' && !item.read && (
-          <TouchableOpacity style={styles.joinBtn} onPress={() => handlePress(item)}>
-            <Text style={styles.joinBtnText}>গ্রুপে যোগ দিন →</Text>
+          <TouchableOpacity
+            style={styles.joinBtn}
+            onPress={() => handlePress(item)}
+            accessibilityRole="button"
+            accessibilityLabel="Join group button"
+          >
+            <Text style={styles.joinBtnText}>join group →</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -72,10 +79,14 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>নোটিফিকেশন</Text>
+        <Text style={styles.headerTitle}>Notifications</Text>
         {unread > 0 && (
-          <TouchableOpacity onPress={markAllRead}>
-            <Text style={styles.markAll}>সব পড়া হয়েছে</Text>
+          <TouchableOpacity
+            onPress={markAllRead}
+            accessibilityRole="button"
+            accessibilityLabel="Mark all notifications as read button"
+          >
+            <Text style={styles.markAll}>Mark all as read</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -83,7 +94,7 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
       {unread > 0 && (
         <View style={styles.unreadBanner}>
           <Ionicons name="notifications" size={14} color={colors.primary} />
-          <Text style={styles.unreadBannerText}>{unread}টি নতুন নোটিফিকেশন</Text>
+          <Text style={styles.unreadBannerText}>{unread} new notifications</Text>
         </View>
       )}
 
@@ -95,7 +106,7 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
         ListEmptyComponent={
           <View style={styles.empty}>
             <Ionicons name="notifications-off-outline" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>কোনো নোটিফিকেশন নেই।</Text>
+            <Text style={styles.emptyText}>No notifications available.</Text>
           </View>
         }
       />

@@ -22,7 +22,7 @@ export default function ApplicantReviewScreen({ route }) {
   if (!eventId) {
     return (
       <View style={styles.container}>
-        <Text style={styles.empty}>কোনো ইভেন্ট নির্বাচন করা হয়নি। অনুগ্রহ করে ইভেন্ট ম্যানেজ থেকে আসুন।</Text>
+        <Text style={styles.empty}>no event found kindly select an event</Text>
       </View>
     );
   }
@@ -38,7 +38,7 @@ export default function ApplicantReviewScreen({ route }) {
     await selectApplicants(eventId, selected);
     await publishSelection(eventId);
     setPublishing(false);
-    Alert.alert('সফল', 'নির্বাচন প্রকাশিত হয়েছে, নির্বাচিতরা নোটিফিকেশন পাবেন।');
+    Alert.alert('Success', 'Selection published, selected candidates will receive notifications.');
     load();
   };
 
@@ -51,7 +51,12 @@ export default function ApplicantReviewScreen({ route }) {
         renderItem={({ item }) => {
           const isChecked = selected.includes(item.userId);
           return (
-            <TouchableOpacity onPress={() => toggle(item.userId)}>
+            <TouchableOpacity
+              onPress={() => toggle(item.userId)}
+              accessibilityRole="checkbox"
+              accessibilityLabel={`Select ${item.name}`}
+              accessibilityState={{ checked: isChecked }}
+            >
               <Card style={styles.row}>
                 <Ionicons
                   name={isChecked ? 'checkbox' : 'square-outline'}
@@ -60,18 +65,18 @@ export default function ApplicantReviewScreen({ route }) {
                 />
                 <View style={{ marginLeft: 12, flex: 1 }}>
                   <Text style={styles.name}>{item.name}</Text>
-                  <Text style={styles.meta}>আবেদন করেছেন: {new Date(item.appliedAt).toLocaleDateString('bn-BD')}</Text>
+                  <Text style={styles.meta}>Applied on: {new Date(item.appliedAt).toLocaleDateString('bn-BD')}</Text>
                 </View>
               </Card>
             </TouchableOpacity>
           );
         }}
-        ListEmptyComponent={<Text style={styles.empty}>কোনো আবেদনকারী নেই।</Text>}
+        ListEmptyComponent={<Text style={styles.empty}>No applicants found.</Text>}
       />
       {event.applicants.length > 0 && (
         <View style={styles.footer}>
           <PrimaryButton
-            title={`নির্বাচন প্রকাশ করুন (${selected.length} জন)`}
+            title={`Publish Selection (${selected.length} candidates)`}
             onPress={handlePublish}
             loading={publishing}
           />
