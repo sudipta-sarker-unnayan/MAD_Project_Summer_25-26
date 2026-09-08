@@ -22,7 +22,7 @@ export const AuthProvider = ({ children }) => {
       if (saved && expiry && Date.now() < parseInt(expiry)) {
         setUser(JSON.parse(saved));
       } else if (saved) {
-        // সেশনের মেয়াদ শেষ হয়ে গেছে
+    
         await AsyncStorage.removeItem('shomoy_user');
         await AsyncStorage.removeItem('shomoy_session_expiry');
       }
