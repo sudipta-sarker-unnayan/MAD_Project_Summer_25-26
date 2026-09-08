@@ -5,7 +5,10 @@ import { useAuth } from '../context/AuthContext';
 import { Avatar, Badge, Card, colors, safeNavigate } from '../components/index';
 
 const MenuItem = ({ icon, label, onPress, danger }) => (
-  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.8}>
+  <TouchableOpacity style={styles.menuItem} onPress={onPress} activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityLabel={label}
+  >
     <View style={[styles.menuIcon, { backgroundColor: (danger ? colors.accent : colors.primary) + '12' }]}>
       <Ionicons name={icon} size={18} color={danger ? colors.accent : colors.primary} />
     </View>
@@ -25,33 +28,32 @@ export default function AdminProfileScreen({ navigation }) {
         <Text style={styles.memberId}>{user?.id}</Text>
         <View style={styles.badgeRow}>
           <Badge label="Admin" color={colors.accent} />
-          <Badge label="সিস্টেম নিয়ন্ত্রক" color={colors.primary} style={{ marginLeft: 8 }} />
+          <Badge label="System Administrator" color={colors.primary} style={{ marginLeft: 8 }} />
         </View>
       </View>
 
       <View style={styles.body}>
-        {/* Admin panel — সবচেয়ে গুরুত্বপূর্ণ সেকশন, সবার উপরে */}
-        <Text style={styles.sectionTitle}>অ্যাডমিন প্যানেল</Text>
+        <Text style={styles.sectionTitle}>Admin Panel</Text>
         <Card style={{ padding: 4 }}>
-          <MenuItem icon="calendar"       label="ইভেন্ট ও কমিটি ম্যানেজ"   onPress={() => safeNavigate(navigation, 'EventManage')} />
-          <MenuItem icon="people"         label="আবেদনকারী পর্যালোচনা"     onPress={() => safeNavigate(navigation, 'EventManage')} />
-          <MenuItem icon="droplet"        label="ব্লাড রিকোয়েস্ট ওভারভিউ" onPress={() => safeNavigate(navigation, 'BloodRequest')} />
-          <MenuItem icon="person-circle"  label="মেম্বার ম্যানেজমেন্ট"    onPress={() => safeNavigate(navigation, 'MemberSearch')} />
+          <MenuItem icon="calendar"       label="Event and Committee Management"   onPress={() => safeNavigate(navigation, 'EventManage')} />
+          <MenuItem icon="people"         label="Application Review"     onPress={() => safeNavigate(navigation, 'EventManage')} />
+          <MenuItem icon="droplet"        label="Blood Request Overview" onPress={() => safeNavigate(navigation, 'BloodRequest')} />
+          <MenuItem icon="person-circle"  label="Member Management"    onPress={() => safeNavigate(navigation, 'MemberSearch')} />
         </Card>
 
-        <Text style={styles.sectionTitle}>অ্যাকাউন্ট</Text>
+        <Text style={styles.sectionTitle}>Account</Text>
         <Card style={{ padding: 4 }}>
-          <MenuItem icon="person-outline"      label="প্রোফাইল সম্পাদনা"   onPress={() => safeNavigate(navigation, 'EditProfile')} />
-          <MenuItem icon="lock-closed-outline" label="পাসওয়ার্ড পরিবর্তন" onPress={() => safeNavigate(navigation, 'ChangePassword')} />
-          <MenuItem icon="id-card-outline"     label="ডিজিটাল আইডি কার্ড" onPress={() => safeNavigate(navigation, 'DigitalIDCard')} />
+          <MenuItem icon="person-outline"      label="Edit Profile"   onPress={() => safeNavigate(navigation, 'EditProfile')} />
+          <MenuItem icon="lock-closed-outline" label="Change Password" onPress={() => safeNavigate(navigation, 'ChangePassword')} />
+          <MenuItem icon="id-card-outline"     label="Digital ID Card" onPress={() => safeNavigate(navigation, 'DigitalIDCard')} />
         </Card>
 
         <Text style={styles.sectionTitle}> </Text>
         <Card style={{ padding: 4 }}>
-          <MenuItem icon="log-out-outline" label="লগআউট" onPress={logout} danger />
+          <MenuItem icon="log-out-outline" label="Logout" onPress={logout} danger />
         </Card>
 
-        <Text style={styles.footer}>AIUB Social Welfare Club – শময় Admin · v1.0.0</Text>
+        <Text style={styles.footer}>AIUB Social Welfare Club – Shomoy Admin · v1.0.0</Text>
       </View>
     </ScrollView>
   );

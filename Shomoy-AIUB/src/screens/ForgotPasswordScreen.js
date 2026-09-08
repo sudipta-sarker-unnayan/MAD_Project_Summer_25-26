@@ -14,23 +14,23 @@ export default function ForgotPasswordScreen({ navigation }) {
 
   const validateEmail = () => {
     const e = {};
-    if (!email.trim())            e.email = 'ইমেইল দিন।';
-    else if (!email.includes('@')) e.email = 'সঠিক ইমেইল দিন।';
+    if (!email.trim())            e.email = 'email';
+    else if (!email.includes('@')) e.email = 'input right email';
     setErrors(e);
     return !e.email;
   };
 
   const validateOtp = () => {
     const e = {};
-    if (!otp.trim() || otp.length < 4) e.otp = '৪ সংখ্যার OTP দিন।';
+    if (!otp.trim() || otp.length < 4) e.otp = 'give 4 digit OTP';
     setErrors(e);
     return !e.otp;
   };
 
   const validatePassword = () => {
     const e = {};
-    if (!newPass || newPass.length < 6)    e.newPass = 'কমপক্ষে ৬ অক্ষর দিন।';
-    if (newPass !== confirmPass)            e.confirmPass = 'পাসওয়ার্ড মিলছে না।';
+    if (!newPass || newPass.length < 6)    e.newPass = 'at least 6 characters';
+    if (newPass !== confirmPass)            e.confirmPass = 'passwords do not match';
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -41,14 +41,14 @@ export default function ForgotPasswordScreen({ navigation }) {
     setTimeout(() => {
       setLoading(false);
       setStep(2);
-      Alert.alert('OTP পাঠানো হয়েছে', `${email} এ OTP পাঠানো হয়েছে।\n\nডেমো OTP: 1234`);
+      Alert.alert('OTP Sent', `${email} has been sent an OTP.\n\nDemo OTP: 1234`);
     }, 1500);
   };
 
   const handleVerifyOtp = () => {
     if (!validateOtp()) return;
     if (otp !== '1234') {
-      setErrors({ otp: 'OTP ভুল। আবার চেষ্টা করুন।' });
+      setErrors({ otp: 'OTP is incorrect. Please try again.' });
       return;
     }
     setStep(3);
@@ -60,8 +60,8 @@ export default function ForgotPasswordScreen({ navigation }) {
     setTimeout(() => {
       try {
         setLoading(false);
-        Alert.alert('সফল!', 'পাসওয়ার্ড পরিবর্তন হয়েছে।', [
-          { text: 'লগইন করুন', onPress: () => safeNavigate(navigation, 'Login') }
+        Alert.alert('Success!', 'Password has been changed.', [
+          { text: 'Login', onPress: () => safeNavigate(navigation, 'Login') }
         ]);
       } catch (e) {
         console.log('Reset password error:', e);
@@ -84,17 +84,19 @@ export default function ForgotPasswordScreen({ navigation }) {
               console.log('Back navigation error:', e);
             }
           }}
+          accessibilityRole="button"
+          accessibilityLabel="back"
         >
-          <Text style={styles.backText}>← পেছনে</Text>
+          <Text style={styles.backText}>← Back</Text>
         </TouchableOpacity>
 
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>পাসওয়ার্ড পুনরুদ্ধার</Text>
+          <Text style={styles.title}>Password Reset</Text>
           <Text style={styles.subtitle}>
-            {step === 1 && 'আপনার ক্লাব ইমেইল দিন, OTP পাঠানো হবে।'}
-            {step === 2 && `${email} এ পাঠানো OTP দিন।`}
-            {step === 3 && 'নতুন পাসওয়ার্ড সেট করুন।'}
+            {step === 1 && 'Enter your club email, OTP will be sent.'}
+            {step === 2 && `${email} has been sent an OTP.`}
+            {step === 3 && 'Set a new password.'}
           </Text>
         </View>
 
@@ -113,34 +115,37 @@ export default function ForgotPasswordScreen({ navigation }) {
         <View style={styles.card}>
           {step === 1 && (
             <>
-              <InputField label="ক্লাব ইমেইল" placeholder="yourname@aiub.edu"
+              <InputField label="Club Email" placeholder="yourname@aiub.edu"
                 value={email} onChangeText={t => { setEmail(t); setErrors({}); }}
                 keyboardType="email-address" autoCapitalize="none" error={errors.email} />
-              <PrimaryButton title="OTP পাঠান" onPress={handleSendOtp} loading={loading} />
+              <PrimaryButton title="Send OTP" onPress={handleSendOtp} loading={loading} />
             </>
           )}
 
           {step === 2 && (
             <>
-              <InputField label="OTP কোড" placeholder="4 সংখ্যার কোড"
+              <InputField label="OTP Code" placeholder="4-digit code"
                 value={otp} onChangeText={t => { setOtp(t); setErrors({}); }}
                 keyboardType="number-pad" maxLength={4} error={errors.otp} />
-              <PrimaryButton title="যাচাই করুন" onPress={handleVerifyOtp} />
-              <TouchableOpacity style={styles.resend} onPress={handleSendOtp}>
-                <Text style={styles.resendText}>OTP পাননি? আবার পাঠান</Text>
+              <PrimaryButton title="Verify OTP" onPress={handleVerifyOtp} />
+              <TouchableOpacity style={styles.resend} onPress={handleSendOtp}
+                accessibilityRole="button"
+                accessibilityLabel="OTP not received? resend here"
+              >
+                <Text style={styles.resendText}>OTP not received? Resend</Text>
               </TouchableOpacity>
             </>
           )}
 
           {step === 3 && (
             <>
-              <InputField label="নতুন পাসওয়ার্ড" placeholder="কমপক্ষে ৬ অক্ষর"
+              <InputField label="New Password" placeholder="At least 6 characters"
                 value={newPass} onChangeText={t => { setNewPass(t); setErrors({}); }}
                 secureTextEntry error={errors.newPass} />
-              <InputField label="পাসওয়ার্ড নিশ্চিত করুন" placeholder="আবার দিন"
+              <InputField label="Confirm Password" placeholder="Enter again"
                 value={confirmPass} onChangeText={t => { setConfirmPass(t); setErrors({}); }}
                 secureTextEntry error={errors.confirmPass} />
-              <PrimaryButton title="পাসওয়ার্ড পরিবর্তন করুন" onPress={handleResetPassword} loading={loading} />
+              <PrimaryButton title="Reset Password" onPress={handleResetPassword} loading={loading} />
             </>
           )}
         </View>
