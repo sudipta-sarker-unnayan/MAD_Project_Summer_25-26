@@ -12,13 +12,8 @@ const mapNotif = (n) => ({
 });
 
 export const getNotificationsFor = async (userId) => {
-  try {
-    const { data } = await api.get(`/notifications/${userId}`);
-    return data.map(mapNotif);
-  } catch (e) {
-    console.log('getNotificationsFor error:', e);
-    return [];
-  }
+  const { data } = await api.get(`/notifications/${userId}`);
+  return data.map(mapNotif);
 };
 
 export const getUnreadCount = async (userId) => {
@@ -61,7 +56,6 @@ export const deleteNotification = async (id) => {
   }
 };
 
-// ব্যাকএন্ড এখন সরাসরি ইভেন্ট রুট থেকেই নোটিফিকেশন পাঠায়; সরাসরি পাঠাতে চাইলে (যেমন BloodRequestScreen থেকে) এটা ব্যবহার করুন
 export const pushNotification = async ({ recipientId, type, title, body = '', relatedId = null }) => {
   try {
     const { data } = await api.post('/notifications', { recipientId, type, title, body, relatedId });

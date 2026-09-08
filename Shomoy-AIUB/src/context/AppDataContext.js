@@ -7,11 +7,27 @@ const AppDataContext = createContext();
 export const AppDataProvider = ({ children }) => {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(true);
+  const [notifError, setNotifError] = useState(null);
 
   const refreshNotifications = useCallback(async () => {
-    if (!user?.id) { setNotifications([]); return; }
-    const mine = await notificationService.getNotificationsFor(user.id);
-    setNotifications(mine);
+    if (!user?.id) {
+      setNotifications([]);
+      setNotifLoading(false);
+      setNotifError(null);
+      return;
+    }
+    setNotifError(null);
+    setNotifLoading(true);
+    try {
+      const mine = await notificationService.getNotificationsFor(user.id);
+      setNotifications(mine);
+    } catch (e) {
+      console.log('refreshNotifications error:', e);
+      setNotifError('Failed to load notifications. Please try again later.');
+    } finally {
+      setNotifLoading(false);
+    }
   }, [user?.id]);
 
   useEffect(() => { refreshNotifications(); }, [refreshNotifications]);
@@ -35,7 +51,16 @@ export const AppDataProvider = ({ children }) => {
   const unreadCount = notifications.filter(n => !n.read).length;
 
   return (
-    <AppDataContext.Provider value={{ notifications, unreadCount, markRead, markAllRead, deleteNotif, refreshNotifications }}>
+    <AppDataContext.Provider value={{
+      notifications,
+      notifLoading,
+      notifError,
+      unreadCount,
+      markRead,
+      markAllRead,
+      deleteNotif,
+      refreshNotifications,
+    }}>
       {children}
     </AppDataContext.Provider>
   );

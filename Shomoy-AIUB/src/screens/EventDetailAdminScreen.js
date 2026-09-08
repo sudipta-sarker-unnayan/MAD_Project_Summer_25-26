@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Card, InputField, PrimaryButton, SecondaryButton, colors, safeNavigate } from '../components/index';
 import { getEventById, updateTrackerStep, updateAnnouncement } from '../services/eventService';
@@ -11,25 +11,66 @@ export default function EventDetailAdminScreen({ route, navigation }) {
   const [event, setEvent] = useState(null);
   const [announcement, setAnnouncement] = useState('');
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const load = async () => {
-    const e = await getEventById(eventId);
-    setEvent(e);
-    setAnnouncement(e?.announcement || '');
+    setError(null);
+    setLoading(true);
+    try {
+      const e = await getEventById(eventId);
+      if (!e) {
+        setError('Event not found. Please check your connection and try again.');
+        return;
+      }
+      setEvent(e);
+      setAnnouncement(e?.announcement || '');
+    } catch (err) {
+      console.log('EventDetailAdminScreen load error:', err);
+      setError('Failed to load event information. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
   useFocusEffect(useCallback(() => { load(); }, [eventId]));
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.stateBox]}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={styles.stateText}>Loading event information...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.stateBox]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <SecondaryButton title="Try Again" onPress={load} style={{ marginTop: 12 }} />
+      </View>
+    );
+  }
 
   if (!event) return <View style={styles.container} />;
 
   const handleStepChange = async (step) => {
-    await updateTrackerStep(eventId, step);
+    const res = await updateTrackerStep(eventId, step);
+    if (!res.success) {
+      Alert.alert('Failed', res.message);
+      return;
+    }
     load();
   };
 
   const handleSaveAnnouncement = async () => {
     setSaving(true);
-    await updateAnnouncement(eventId, announcement);
+    const res = await updateAnnouncement(eventId, announcement);
     setSaving(false);
+    if (!res.success) {
+      Alert.alert('Failed', res.message);
+      return;
+    }
     load();
   };
 
@@ -39,7 +80,7 @@ export default function EventDetailAdminScreen({ route, navigation }) {
       <Text style={styles.meta}>{event.date} · {event.location}</Text>
 
       <Card>
-        <Text style={styles.sectionLabel}>ইভেন্টের অবস্থা আপডেট</Text>
+        <Text style={styles.sectionLabel}>Event Status Update</Text>
         <View style={styles.stepRow}>
           {STEPS.map((s, i) => (
             <SecondaryButton
@@ -53,18 +94,18 @@ export default function EventDetailAdminScreen({ route, navigation }) {
       </Card>
 
       <Card>
-        <Text style={styles.sectionLabel}>ঘোষণা (যেকোনো সময় এডিট করা যাবে)</Text>
+        <Text style={styles.sectionLabel}>Announcement (can be edited at any time)</Text>
         <InputField
           value={announcement}
           onChangeText={setAnnouncement}
           multiline
-          placeholder="সদস্যদের জন্য ঘোষণা লিখুন..."
+          placeholder="Write an announcement for members..."
         />
-        <PrimaryButton title="সেভ করুন" onPress={handleSaveAnnouncement} loading={saving} />
+        <PrimaryButton title="Save" onPress={handleSaveAnnouncement} loading={saving} />
       </Card>
 
       <SecondaryButton
-        title="আবেদনকারী দেখুন ও নির্বাচন করুন"
+        title="View Applicants and Select"
         onPress={() => safeNavigate(navigation, 'ApplicantReview', { eventId })}
       />
     </ScrollView>
@@ -79,4 +120,7 @@ const styles = StyleSheet.create({
   stepRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   stepBtn: { flexGrow: 1, paddingVertical: 8 },
   stepBtnActive: { backgroundColor: colors.primary + '15' },
+  stateBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 32 },
+  stateText: { fontSize: 13, color: colors.textMuted, marginTop: 8 },
+  errorText: { fontSize: 13, color: colors.danger, textAlign: 'center', paddingHorizontal: 16 },
 });

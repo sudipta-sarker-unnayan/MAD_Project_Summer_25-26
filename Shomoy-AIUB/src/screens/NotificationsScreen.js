@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Linking from 'expo-linking';
 import { Swipeable } from 'react-native-gesture-handler';
-import { colors, safeNavigate } from '../components/index';
+import { colors, safeNavigate, SecondaryButton } from '../components/index';
 import { useAppData } from '../context/AppDataContext';
 
 const typeIcon = { committee: 'people', selected: 'trophy', blood: 'heart', event: 'calendar' };
@@ -11,7 +11,15 @@ const typeColor = { committee: colors.primary, selected: colors.success, blood: 
 
 export default function NotificationsScreen({ navigation }) {
 
-const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData();
+const {
+  notifications: notifs,
+  notifLoading,
+  notifError,
+  markRead,
+  markAllRead,
+  deleteNotif,
+  refreshNotifications,
+} = useAppData();
 
   const handlePress = (item) => {
     try {
@@ -19,7 +27,7 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
       if (item.type === 'committee' && item.eventId) {
         safeNavigate(navigation, 'Events');
       } else if (item.type === 'selected' && item.groupLink) {
-        safeNavigate(navigation, 'GroupChat', { eventId: item.eventId, title: 'Event Group Chat' });
+        safeNavigate(navigation, 'GroupChat', { eventId: item.eventId, title: 'event group chat' });
       } else if (item.type === 'blood') {
         safeNavigate(navigation, 'BloodRequest');
       }
@@ -66,7 +74,7 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
             accessibilityRole="button"
             accessibilityLabel="Join group button"
           >
-            <Text style={styles.joinBtnText}>join group →</Text>
+            <Text style={styles.joinBtnText}>Join group →</Text>
           </TouchableOpacity>
         )}
       </View>
@@ -98,18 +106,35 @@ const { notifications: notifs, markRead, markAllRead, deleteNotif } = useAppData
         </View>
       )}
 
-      <FlatList
-        data={notifs}
-        keyExtractor={i => i.id}
-        renderItem={renderItem}
-        contentContainerStyle={styles.list}
-        ListEmptyComponent={
-          <View style={styles.empty}>
-            <Ionicons name="notifications-off-outline" size={48} color={colors.border} />
-            <Text style={styles.emptyText}>No notifications available.</Text>
-          </View>
-        }
-      />
+      {notifLoading && (
+        <View style={styles.stateBox}>
+          <ActivityIndicator color={colors.primary} size="large" />
+          <Text style={styles.stateText}>Loading notifications...</Text>
+        </View>
+      )}
+
+      {!notifLoading && notifError && (
+        <View style={styles.stateBox}>
+          <Ionicons name="cloud-offline-outline" size={32} color={colors.danger} />
+          <Text style={styles.errorText}>{notifError}</Text>
+          <SecondaryButton title="Try Again" onPress={refreshNotifications} style={{ marginTop: 12 }} />
+        </View>
+      )}
+
+      {!notifLoading && !notifError && (
+        <FlatList
+          data={notifs}
+          keyExtractor={i => i.id}
+          renderItem={renderItem}
+          contentContainerStyle={styles.list}
+          ListEmptyComponent={
+            <View style={styles.empty}>
+              <Ionicons name="notifications-off-outline" size={48} color={colors.border} />
+              <Text style={styles.emptyText}>No notifications available.</Text>
+            </View>
+          }
+        />
+      )}
     </View>
   );
 }
@@ -135,4 +160,7 @@ const styles = StyleSheet.create({
   empty: { alignItems: 'center', marginTop: 60 },
   emptyText: { fontSize: 15, color: colors.textMuted, marginTop: 12 },
   deleteAction: { backgroundColor: colors.danger, justifyContent: 'center', alignItems: 'center', width: 70, borderRadius: 14, marginBottom: 10 },
+  stateBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40 },
+  stateText: { fontSize: 13, color: colors.textMuted, marginTop: 8 },
+  errorText: { fontSize: 13, color: colors.danger, textAlign: 'center', marginTop: 8, paddingHorizontal: 16 },
 });
