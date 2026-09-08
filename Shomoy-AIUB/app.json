@@ -10,9 +10,7 @@
       "ios",
       "web"
     ],
-    "splash": {
-      "backgroundColor": "#0A2463"
-    },
+        "icon": "./assets/icon.png",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -22,6 +20,7 @@
     },
     "android": {
       "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0A2463"
       },
       "package": "com.aiub.shomoy"
@@ -29,7 +28,16 @@
     "scheme": "shomoy",
     "plugins": [
       "expo-font",
-      "expo-notifications"
+      "expo-notifications",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 200,
+          "resizeMode": "contain",
+          "backgroundColor": "#0A2463"
+        }
+      ]
     ]
   }
 }
