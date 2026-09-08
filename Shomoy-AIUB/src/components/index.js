@@ -12,6 +12,10 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
     onPress={onPress}
     disabled={loading || disabled}
     activeOpacity={0.85}
+    accessibilityRole="button"
+    accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+    accessibilityState={{ disabled: !!(loading || disabled), busy: !!loading }}
+   
   >
     {loading
       ? <ActivityIndicator color="#fff" />
@@ -22,7 +26,10 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
 
 // ─── SecondaryButton ───────────────────────────────────────────
 export const SecondaryButton = ({ title, onPress, style }) => (
-  <TouchableOpacity style={[s.secondaryBtn, style]} onPress={onPress} activeOpacity={0.8}>
+  <TouchableOpacity style={[s.secondaryBtn, style]} onPress={onPress} activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+  >
     <Text style={s.secondaryBtnText}>{title}</Text>
   </TouchableOpacity>
 );
