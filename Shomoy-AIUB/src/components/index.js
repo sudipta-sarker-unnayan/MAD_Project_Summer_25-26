@@ -6,21 +6,12 @@ import {
 } from 'react-native';
 import { colors } from '../theme/colors';
 
-// ─── PrimaryButton ─────────────────────────────────────────────
-export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
-  <TouchableOpacity
-    style={[s.primaryBtn, (disabled || loading) && s.disabledBtn, style]}
-    onPress={onPress}
-    disabled={loading || disabled}
-    activeOpacity={0.85}
-    accessibilityRole="button"
-    accessibilityLabel={typeof title === 'string' ? title : 'Button'}
-    accessibilityState={{ disabled: !!(loading || disabled), busy: !!loading }}
-   
-  >
-    {loading
-      ? <ActivityIndicator color="#fff" />
-      : <Text style={s.primaryBtnText}>{title}</Text>
+const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
+// ─── safeNavigate ────────────────────────────────────────────────
+export const safeNavigate = (navigation, screen, params) => {
+  try {
+    if (!navigation || typeof navigation.navigate !== 'function') {
+      throw new Error('Navigation is not available');
     }
     navigation.navigate(screen, params);
   } catch (e) {
@@ -31,7 +22,7 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
 
 // ─── PrimaryButton ─────────────────────────────────────────────
 export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
-  const scale = useSharedValue(1); // এটার জন্য useSharedValue ও import করো reanimated থেকে
+  const scale = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],
@@ -45,6 +36,9 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
       onPressOut={() => { scale.value = withTiming(1, { duration: 100 }); }}
       disabled={loading || disabled}
       activeOpacity={0.85}
+      accessibilityRole="button"
+      accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+      accessibilityState={{ disabled: !!(loading || disabled), busy: !!loading }}
     >
       {loading
         ? <ActivityIndicator color="#fff" />
@@ -56,7 +50,10 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
 
 // ─── SecondaryButton ───────────────────────────────────────────
 export const SecondaryButton = ({ title, onPress, style }) => (
-  <TouchableOpacity style={[s.secondaryBtn, style]} onPress={onPress} activeOpacity={0.8}
+  <TouchableOpacity
+    style={[s.secondaryBtn, style]}
+    onPress={onPress}
+    activeOpacity={0.8}
     accessibilityRole="button"
     accessibilityLabel={typeof title === 'string' ? title : 'Button'}
   >
