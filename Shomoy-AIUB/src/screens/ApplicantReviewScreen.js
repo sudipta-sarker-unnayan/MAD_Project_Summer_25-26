@@ -1,8 +1,8 @@
 import React, { useCallback, useState } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { Card, PrimaryButton, colors } from '../components/index';
+import { Card, PrimaryButton, SecondaryButton, colors } from '../components/index';
 import { getEventById, selectApplicants, publishSelection } from '../services/eventService';
 
 export default function ApplicantReviewScreen({ route }) {
@@ -10,19 +10,52 @@ export default function ApplicantReviewScreen({ route }) {
   const [event, setEvent] = useState(null);
   const [selected, setSelected] = useState([]);
   const [publishing, setPublishing] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const load = async () => {
     if (!eventId) return;
-    const e = await getEventById(eventId);
-    setEvent(e);
-    setSelected(e ? e.applicants.filter(a => a.status === 'selected').map(a => a.userId) : []);
+    setError(null);
+    setLoading(true);
+    try {
+      const e = await getEventById(eventId);
+      if (!e) {
+        setError('applicant data not found. Please check your connection and try again.');
+        return;
+      }
+      setEvent(e);
+      setSelected(e.applicants.filter(a => a.status === 'selected').map(a => a.userId));
+    } catch (err) {
+      console.log('ApplicantReviewScreen load error:', err);
+      setError('Failed to load applicant information. Please check your connection and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
   useFocusEffect(useCallback(() => { load(); }, [eventId]));
 
   if (!eventId) {
     return (
       <View style={styles.container}>
-        <Text style={styles.empty}>no event found kindly select an event</Text>
+        <Text style={styles.empty}>No event selected. Please go to Event Manage to select an event.</Text>
+      </View>
+    );
+  }
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.stateBox]}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={styles.stateText}>Loading applicant information...</Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.stateBox]}>
+        <Text style={styles.errorText}>{error}</Text>
+        <SecondaryButton title="Try Again" onPress={load} style={{ marginTop: 12 }} />
       </View>
     );
   }
@@ -35,9 +68,18 @@ export default function ApplicantReviewScreen({ route }) {
 
   const handlePublish = async () => {
     setPublishing(true);
-    await selectApplicants(eventId, selected);
-    await publishSelection(eventId);
+    const selectRes = await selectApplicants(eventId, selected);
+    if (!selectRes.success) {
+      setPublishing(false);
+      Alert.alert('Failed', selectRes.message);
+      return;
+    }
+    const publishRes = await publishSelection(eventId);
     setPublishing(false);
+    if (!publishRes.success) {
+      Alert.alert('Failed', publishRes.message);
+      return;
+    }
     Alert.alert('Success', 'Selection published, selected candidates will receive notifications.');
     load();
   };
@@ -93,4 +135,7 @@ const styles = StyleSheet.create({
   meta: { fontSize: 12, color: colors.textSecondary, marginTop: 2 },
   empty: { textAlign: 'center', color: colors.textMuted, marginTop: 40 },
   footer: { padding: 16, borderTopWidth: 0.5, borderTopColor: colors.border, backgroundColor: colors.white },
+  stateBox: { alignItems: 'center', justifyContent: 'center', paddingVertical: 32 },
+  stateText: { fontSize: 13, color: colors.textMuted, marginTop: 8 },
+  errorText: { fontSize: 13, color: colors.danger, textAlign: 'center', paddingHorizontal: 16 },
 });

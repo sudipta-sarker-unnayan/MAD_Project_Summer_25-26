@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Modal,
+  ActivityIndicator,
   SafeAreaView
 } from 'react-native';
 
@@ -34,6 +35,8 @@ import {
 export default function EventManageScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const [form, setForm] = useState({
     title: '',
@@ -55,8 +58,17 @@ export default function EventManageScreen({ navigation }) {
   const [savingDeadline, setSavingDeadline] = useState(false);
 
   const load = async () => {
-    const data = await getEvents();
-    setEvents(data);
+    setError(null);
+    setLoading(true);
+    try {
+      const data = await getEvents();
+      setEvents(data);
+    } catch (e) {
+      console.log('EventManageScreen load error:', e);
+      setError('error loading events. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useFocusEffect(
@@ -67,34 +79,50 @@ export default function EventManageScreen({ navigation }) {
 
   const handleCreate = async () => {
     if (!form.title || !form.date) {
-      Alert.alert('Information Required', 'Please enter a title and date');
+      Alert.alert('invalid input', 'Title and Date are required.');
       return;
     }
 
     setSaving(true);
-    await createEvent(form);
-    setSaving(false);
 
-    setForm({
-      title: '',
-      description: '',
-      date: '',
-      time: '',
-      location: '',
-      applyDeadline: '',
-    });
+    try {
+      const created = await createEvent(form);
+      if (!created) {
+        Alert.alert('Failed', 'Failed to create event. Please try again later.');
+        return;
+      }
 
-    setShowForm(false);
-    load();
+      setForm({
+        title: '',
+        description: '',
+        date: '',
+        time: '',
+        location: '',
+        applyDeadline: '',
+      });
+
+      setShowForm(false);
+      load();
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handlePublish = async (id) => {
-    await publishEvent(id);
+    const res = await publishEvent(id);
+    if (!res.success) {
+      Alert.alert('Failed', res.message);
+      return;
+    }
     load();
   };
 
   const handleClose = async (id) => {
-    await closeEvent(id);
+    const res = await closeEvent(id);
+    if (!res.success) {
+      Alert.alert('Failed', res.message);
+      return;
+    }
     load();
   };
 
@@ -117,20 +145,25 @@ export default function EventManageScreen({ navigation }) {
   const confirmDeadline = async () => {
     if (!deadlineModal.value.trim()) {
       Alert.alert(
-        'Information Required',
-        'Please enter a new Deadline (e.g., 2026-08-10T18:00)'
+        'Invalid Input',
+        'Please enter a new deadline (e.g., 2026-08-10T18:00)'
       );
       return;
     }
 
     setSavingDeadline(true);
 
-    await updateDeadline(
+    const res = await updateDeadline(
       deadlineModal.eventId,
       deadlineModal.value.trim()
     );
 
     setSavingDeadline(false);
+
+    if (!res.success) {
+      Alert.alert('Failed', res.message);
+      return;
+    }
 
     closeDeadlineModal();
     load();
@@ -162,32 +195,32 @@ export default function EventManageScreen({ navigation }) {
     {showForm && (
       <Card>
         <InputField
-          label="title"
+          label="Title"
           value={form.title}
           onChangeText={t => setForm({ ...form, title: t })}
         />
 
         <InputField
-          label="description"
+          label="Description"
           value={form.description}
           onChangeText={t => setForm({ ...form, description: t })}
           multiline
         />
 
         <InputField
-          label="date (like: August 5, 2026)"
+          label="Date (e.g., August 5, 2026)"
           value={form.date}
           onChangeText={t => setForm({ ...form, date: t })}
         />
 
         <InputField
-          label="time (like: 18:00)"
+          label="Time (e.g., 6:00 PM)"
           value={form.time}
           onChangeText={t => setForm({ ...form, time: t })}
         />
 
         <InputField
-          label="place (like: AIUB Auditorium)"
+          label="Location"
           value={form.location}
           onChangeText={t => setForm({ ...form, location: t })}
         />
@@ -209,7 +242,28 @@ export default function EventManageScreen({ navigation }) {
 
     <Text style={styles.sectionTitle}>All Events</Text>
 
-    {events.map(event => (
+    {loading && events.length === 0 && (
+      <View style={styles.stateBox}>
+        <ActivityIndicator color={colors.primary} size="large" />
+        <Text style={styles.stateText}>Loading events...</Text>
+      </View>
+    )}
+
+    {!loading && error && (
+      <View style={styles.stateBox}>
+        <Ionicons name="cloud-offline-outline" size={32} color={colors.danger} />
+        <Text style={styles.errorText}>{error}</Text>
+        <SecondaryButton title="Try Again" onPress={load} style={{ marginTop: 12 }} />
+      </View>
+    )}
+
+    {!loading && !error && events.length === 0 && (
+      <View style={styles.stateBox}>
+        <Text style={styles.stateText}>No events available.</Text>
+      </View>
+    )}
+
+    {!error && events.map(event => (
       <Card key={event.id}>
         <TouchableOpacity
           onPress={() =>
@@ -303,7 +357,7 @@ export default function EventManageScreen({ navigation }) {
       <View style={styles.modalOverlay}>
         <View style={styles.modalBox}>
           <Text style={styles.modalTitle}>
-            set new deadline (YYYY-MM-DDTHH:mm)
+            Set New Deadline
           </Text>
 
           <InputField
@@ -318,13 +372,13 @@ export default function EventManageScreen({ navigation }) {
 
           <View style={styles.modalActions}>
             <SecondaryButton
-              title="cancel"
+              title="Cancel"
               onPress={closeDeadlineModal}
               style={{ flex: 1, marginRight: 8 }}
             />
 
             <PrimaryButton
-              title="confirm"
+              title="Confirm"
               onPress={confirmDeadline}
               loading={savingDeadline}
               style={{ flex: 1 }}
@@ -404,6 +458,26 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
     color: colors.primary,
+  },
+
+  stateBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+  },
+
+  stateText: {
+    fontSize: 13,
+    color: colors.textMuted,
+    marginTop: 8,
+  },
+
+  errorText: {
+    fontSize: 13,
+    color: colors.danger,
+    textAlign: 'center',
+    marginTop: 8,
+    paddingHorizontal: 16,
   },
 
   modalOverlay: {
