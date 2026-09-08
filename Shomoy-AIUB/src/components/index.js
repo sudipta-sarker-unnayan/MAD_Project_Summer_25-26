@@ -6,15 +6,21 @@ import {
 } from 'react-native';
 import { colors } from '../theme/colors';
 
-const AnimatedTouchable = Animated.createAnimatedComponent(TouchableOpacity);
-// ─── safeNavigate ────────────────────────────────────────────────
-// Wraps navigation.navigate in try/catch so tapping a route that
-// isn't registered yet (e.g. a screen still under development)
-// shows a friendly message instead of crashing the app.
-export const safeNavigate = (navigation, screen, params) => {
-  try {
-    if (!navigation || typeof navigation.navigate !== 'function') {
-      throw new Error('Navigation is not available');
+// ─── PrimaryButton ─────────────────────────────────────────────
+export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => (
+  <TouchableOpacity
+    style={[s.primaryBtn, (disabled || loading) && s.disabledBtn, style]}
+    onPress={onPress}
+    disabled={loading || disabled}
+    activeOpacity={0.85}
+    accessibilityRole="button"
+    accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+    accessibilityState={{ disabled: !!(loading || disabled), busy: !!loading }}
+   
+  >
+    {loading
+      ? <ActivityIndicator color="#fff" />
+      : <Text style={s.primaryBtnText}>{title}</Text>
     }
     navigation.navigate(screen, params);
   } catch (e) {
@@ -50,7 +56,10 @@ export const PrimaryButton = ({ title, onPress, loading, style, disabled }) => {
 
 // ─── SecondaryButton ───────────────────────────────────────────
 export const SecondaryButton = ({ title, onPress, style }) => (
-  <TouchableOpacity style={[s.secondaryBtn, style]} onPress={onPress} activeOpacity={0.8}>
+  <TouchableOpacity style={[s.secondaryBtn, style]} onPress={onPress} activeOpacity={0.8}
+    accessibilityRole="button"
+    accessibilityLabel={typeof title === 'string' ? title : 'Button'}
+  >
     <Text style={s.secondaryBtnText}>{title}</Text>
   </TouchableOpacity>
 );
