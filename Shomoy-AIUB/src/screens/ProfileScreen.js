@@ -72,7 +72,7 @@ export default function ProfileScreen({ navigation }) {
           <MenuItem icon="log-out-outline" label="লগআউট" onPress={logout} danger />
         </Card>
 
-        <Text style={styles.footer}>AIUB Social Welfare Club – শময় · v1.0.0</Text>
+        <Text style={styles.footer}>AIUB Social Welfare Club – Shomoy · v1.0.0</Text>
       </View>
     </ScrollView>
   );

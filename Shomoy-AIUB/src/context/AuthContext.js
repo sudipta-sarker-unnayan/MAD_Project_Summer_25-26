@@ -5,6 +5,8 @@ import { sendLocalNotification } from '../utils/notify';
 
 const AuthContext = createContext();
 
+const SESSION_DURATION = 30 * 60 * 1000; // ৩০ মিনিট
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
@@ -14,8 +16,16 @@ export const AuthProvider = ({ children }) => {
 
   const loadUser = async () => {
     try {
-      const saved = await AsyncStorage.getItem('shomoy_user');
-      if (saved) setUser(JSON.parse(saved));
+      const saved  = await AsyncStorage.getItem('shomoy_user');
+      const expiry = await AsyncStorage.getItem('shomoy_session_expiry');
+
+      if (saved && expiry && Date.now() < parseInt(expiry)) {
+        setUser(JSON.parse(saved));
+      } else if (saved) {
+    
+        await AsyncStorage.removeItem('shomoy_user');
+        await AsyncStorage.removeItem('shomoy_session_expiry');
+      }
     } catch (e) {
       console.log('AsyncStorage load error:', e);
     } finally {
@@ -34,7 +44,9 @@ export const AuthProvider = ({ children }) => {
       const memberData = members.find(m => m.id === memberId);
       const userData    = { ...memberData, role: cred.role };
 
+      const expiryTime = Date.now() + SESSION_DURATION;
       await AsyncStorage.setItem('shomoy_user', JSON.stringify(userData));
+      await AsyncStorage.setItem('shomoy_session_expiry', expiryTime.toString());
       setUser(userData);
       sendLocalNotification('Welcome back', `${userData.name}`);
       return { success: true };
@@ -48,6 +60,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await AsyncStorage.removeItem('shomoy_user');
+      await AsyncStorage.removeItem('shomoy_session_expiry');
       setUser(null);
     } catch (e) {
       console.log('Logout error:', e);

@@ -99,7 +99,7 @@ export default function AdminDashboardScreen({ navigation }) {
         <Text style={styles.sectionTitle}>অ্যাডমিন অ্যাকশন</Text>
         <View style={styles.qaGrid}>
           <QuickAction icon="add-circle" label="নতুন ইভেন্ট"   color={colors.primary}      onPress={() => safeNavigate(navigation, 'EventManage')} />
-          <QuickAction icon="people"     label="আবেদনকারী"     color="#7C3AED"             onPress={() => safeNavigate(navigation, 'ApplicantReview')} />
+          <QuickAction icon="people"     label="আবেদনকারী"     color="#7C3AED"             onPress={() => safeNavigate(navigation, 'EventManage')} />
           <QuickAction icon="droplet"    label="ব্লাড অনুরোধ"  color={colors.accent}       onPress={() => safeNavigate(navigation, 'BloodRequest')} />
           <QuickAction icon="person-circle" label="মেম্বার তালিকা" color="#059669"          onPress={() => safeNavigate(navigation, 'MemberSearch')} />
           <QuickAction icon="megaphone"  label="ঘোষণা"         color="#D97706"             onPress={() => safeNavigate(navigation, 'EventManage')} />
