@@ -32,6 +32,9 @@ import {
   updateDeadline,
 } from '../services/eventService';
 
+const DEADLINE_FORMAT = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/;
+const TIME_FORMAT = /^([1-9]|1[0-2]):[0-5]\d\s?(AM|PM|am|pm)$/;
+
 export default function EventManageScreen({ navigation }) {
   const [events, setEvents] = useState([]);
   const [showForm, setShowForm] = useState(false);
@@ -48,6 +51,7 @@ export default function EventManageScreen({ navigation }) {
   });
 
   const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const [deadlineModal, setDeadlineModal] = useState({
     visible: false,
@@ -56,6 +60,7 @@ export default function EventManageScreen({ navigation }) {
   });
 
   const [savingDeadline, setSavingDeadline] = useState(false);
+  const [deadlineError, setDeadlineError] = useState('');
 
   const load = async () => {
     setError(null);
@@ -77,11 +82,54 @@ export default function EventManageScreen({ navigation }) {
     }, [])
   );
 
-  const handleCreate = async () => {
-    if (!form.title || !form.date) {
-      Alert.alert('invalid input', 'Title and Date are required.');
-      return;
+  const setField = (field, value) => {
+    setForm(prev => ({ ...prev, [field]: value }));
+    setErrors(prev => ({ ...prev, [field]: '' }));
+  };
+
+  const validate = () => {
+    const e = {};
+
+    const title = form.title.trim();
+    if (!title) e.title = 'Title is required.';
+    else if (title.length < 3) e.title = 'Title must be at least 3 characters.';
+    else if (title.length > 100) e.title = 'Title must be under 100 characters.';
+
+    if (form.description.trim().length > 500) {
+      e.description = 'Description must be under 500 characters.';
     }
+
+    const date = form.date.trim();
+    if (!date) e.date = 'Date is required.';
+    else if (isNaN(Date.parse(date))) {
+      e.date = 'Enter a valid date, e.g. August 5, 2026.';
+    }
+
+    const time = form.time.trim();
+    if (!time) e.time = 'Time is required.';
+    else if (!TIME_FORMAT.test(time)) {
+      e.time = 'Use format like 6:00 PM.';
+    }
+
+    const location = form.location.trim();
+    if (!location) e.location = 'Location is required.';
+    else if (location.length < 3) e.location = 'Location must be at least 3 characters.';
+
+    const deadline = form.applyDeadline.trim();
+    if (deadline) {
+      if (!DEADLINE_FORMAT.test(deadline)) {
+        e.applyDeadline = 'Use the format YYYY-MM-DDTHH:mm, e.g. 2026-08-05T18:00';
+      } else if (new Date(deadline).getTime() <= Date.now()) {
+        e.applyDeadline = 'Deadline must be a future date and time.';
+      }
+    }
+
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleCreate = async () => {
+    if (!validate()) return;
 
     setSaving(true);
 
@@ -100,6 +148,7 @@ export default function EventManageScreen({ navigation }) {
         location: '',
         applyDeadline: '',
       });
+      setErrors({});
 
       setShowForm(false);
       load();
@@ -127,6 +176,7 @@ export default function EventManageScreen({ navigation }) {
   };
 
   const openDeadlineModal = (eventId, currentDeadline) => {
+    setDeadlineError('');
     setDeadlineModal({
       visible: true,
       eventId,
@@ -135,6 +185,7 @@ export default function EventManageScreen({ navigation }) {
   };
 
   const closeDeadlineModal = () => {
+    setDeadlineError('');
     setDeadlineModal({
       visible: false,
       eventId: null,
@@ -143,20 +194,25 @@ export default function EventManageScreen({ navigation }) {
   };
 
   const confirmDeadline = async () => {
-    if (!deadlineModal.value.trim()) {
-      Alert.alert(
-        'Invalid Input',
-        'Please enter a new deadline (e.g., 2026-08-10T18:00)'
-      );
+    const value = deadlineModal.value.trim();
+
+    if (!value) {
+      setDeadlineError('Please enter a new deadline.');
       return;
     }
+    if (!DEADLINE_FORMAT.test(value)) {
+      setDeadlineError('Use the format YYYY-MM-DDTHH:mm, e.g. 2026-08-10T18:00');
+      return;
+    }
+    if (new Date(value).getTime() <= Date.now()) {
+      setDeadlineError('Deadline must be a future date and time.');
+      return;
+    }
+    setDeadlineError('');
 
     setSavingDeadline(true);
 
-    const res = await updateDeadline(
-      deadlineModal.eventId,
-      deadlineModal.value.trim()
-    );
+    const res = await updateDeadline(deadlineModal.eventId, value);
 
     setSavingDeadline(false);
 
@@ -197,39 +253,45 @@ export default function EventManageScreen({ navigation }) {
         <InputField
           label="Title"
           value={form.title}
-          onChangeText={t => setForm({ ...form, title: t })}
+          onChangeText={t => setField('title', t)}
+          error={errors.title}
         />
 
         <InputField
           label="Description"
           value={form.description}
-          onChangeText={t => setForm({ ...form, description: t })}
+          onChangeText={t => setField('description', t)}
           multiline
+          error={errors.description}
         />
 
         <InputField
           label="Date (e.g., August 5, 2026)"
           value={form.date}
-          onChangeText={t => setForm({ ...form, date: t })}
+          onChangeText={t => setField('date', t)}
+          error={errors.date}
         />
 
         <InputField
           label="Time (e.g., 6:00 PM)"
           value={form.time}
-          onChangeText={t => setForm({ ...form, time: t })}
+          onChangeText={t => setField('time', t)}
+          error={errors.time}
         />
 
         <InputField
           label="Location"
           value={form.location}
-          onChangeText={t => setForm({ ...form, location: t })}
+          onChangeText={t => setField('location', t)}
+          error={errors.location}
         />
 
         <InputField
           label="Application Deadline (YYYY-MM-DDTHH:mm)"
           value={form.applyDeadline}
-          onChangeText={t => setForm({ ...form, applyDeadline: t })}
+          onChangeText={t => setField('applyDeadline', t)}
           placeholder="2026-08-05T18:00"
+          error={errors.applyDeadline}
         />
 
         <PrimaryButton
@@ -363,11 +425,13 @@ export default function EventManageScreen({ navigation }) {
           <InputField
             label="Deadline (YYYY-MM-DDTHH:mm)"
             value={deadlineModal.value}
-            onChangeText={t =>
-              setDeadlineModal(prev => ({ ...prev, value: t }))
-            }
+            onChangeText={t => {
+              setDeadlineModal(prev => ({ ...prev, value: t }));
+              setDeadlineError('');
+            }}
             placeholder="2026-08-10T18:00"
             autoFocus
+            error={deadlineError}
           />
 
           <View style={styles.modalActions}>
