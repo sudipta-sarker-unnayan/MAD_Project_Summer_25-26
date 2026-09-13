@@ -10,7 +10,7 @@
       "ios",
       "web"
     ],
-        "icon": "./assets/icon.png",
+    "icon": "./assets/icon.png",
     "assetBundlePatterns": [
       "**/*"
     ],
@@ -38,6 +38,11 @@
           "backgroundColor": "#0A2463"
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "027020db-94c5-4301-bc26-1aebe89b5f4d"
+      }
+    }
   }
 }
