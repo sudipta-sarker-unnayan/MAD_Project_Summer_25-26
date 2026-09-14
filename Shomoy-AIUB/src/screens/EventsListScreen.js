@@ -20,11 +20,19 @@ export default function EventsListScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('upcoming');
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
-    const all = await getEvents();
-    setEvents(all);
-    setLoading(false);
+    try {
+      setError(null);
+      const all = await getEvents();
+      setEvents(all);
+    } catch (e) {
+      console.log('EventsListScreen load error:', e.message);
+      setError('ইভেন্ট লোড করা যায়নি। ইন্টারনেট/সার্ভার সংযোগ চেক করুন।');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -74,6 +82,14 @@ export default function EventsListScreen({ navigation }) {
             <SkeletonBox height={90} radius={14} style={{ marginBottom: 12 }} />
             <SkeletonBox height={90} radius={14} style={{ marginBottom: 12 }} />
           </>
+        ) : error ? (
+          <View style={styles.emptyBox}>
+            <Ionicons name="cloud-offline-outline" size={40} color={colors.danger} />
+            <Text style={styles.emptyText}>{error}</Text>
+            <TouchableOpacity onPress={load} style={styles.retryBtn} activeOpacity={0.8}>
+              <Text style={styles.retryText}>আবার চেষ্টা করুন</Text>
+            </TouchableOpacity>
+          </View>
         ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="calendar-outline" size={40} color={colors.textMuted} />
@@ -159,6 +175,11 @@ const styles = StyleSheet.create({
   title: { fontSize: 15, fontWeight: '700', color: colors.textPrimary },
   meta: { fontSize: 12, color: colors.textSecondary, marginTop: 3 },
   badgeRow: { flexDirection: 'row', gap: 8, marginTop: 12 },
-  emptyBox: { alignItems: 'center', marginTop: 60 },
-  emptyText: { fontSize: 13, color: colors.textMuted, marginTop: 10 },
+  emptyBox: { alignItems: 'center', marginTop: 60, paddingHorizontal: 24 },
+  emptyText: { fontSize: 13, color: colors.textMuted, marginTop: 10, textAlign: 'center' },
+  retryBtn: {
+    marginTop: 16, paddingHorizontal: 20, paddingVertical: 10,
+    borderRadius: 10, borderWidth: 1, borderColor: colors.primary,
+  },
+  retryText: { fontSize: 13, fontWeight: '600', color: colors.primary },
 });

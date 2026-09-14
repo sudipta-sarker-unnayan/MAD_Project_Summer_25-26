@@ -1,54 +1,87 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import api from './api';
 import { donationDrives as seedDrives } from '../data/dummyData';
 import { pushNotification } from './notificationService';
 
 const STORAGE_KEY = 'shomoy_donations';
-const genId = () => `DD-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
 
-const loadAll = async () => {
+// ── Maps backend snake_case fields to the shape our screens expect ──
+// NOTE: field names assumed to match eventService.js's backend convention.
+// Confirm exact route/field names with the backend teammate and adjust if different.
+const mapDonor = (d) => ({
+  userId: d.user_id ?? d.userId,
+  name: d.name,
+  amount: d.amount,
+  date: d.date,
+});
+
+const mapDrive = (d) => ({
+  id: d.id,
+  title: d.title,
+  description: d.description,
+  goalAmount: d.goal_amount ?? d.goalAmount,
+  raisedAmount: d.raised_amount ?? d.raisedAmount ?? 0,
+  deadline: d.deadline,
+  status: d.status,
+  donors: (d.donors || []).map(mapDonor),
+});
+
+// ── Local AsyncStorage fallback (original implementation) ──
+const loadAllLocal = async () => {
   try {
     const raw = await AsyncStorage.getItem(STORAGE_KEY);
     if (raw) return JSON.parse(raw);
-    // প্রথমবার — dummyData দিয়ে seed
     const seeded = (seedDrives || []).map(d => ({
-      donors: [],
-      status: 'Active',
-      raisedAmount: 0,
-      ...d,
+      donors: [], status: 'Active', raisedAmount: 0, ...d,
     }));
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(seeded));
     return seeded;
   } catch (e) {
-    console.log('donationService loadAll error:', e);
+    console.log('donationService loadAllLocal error:', e);
     return [];
   }
 };
 
-const saveAll = async (list) => {
+const saveAllLocal = async (list) => {
   try {
     await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(list));
     return true;
   } catch (e) {
-    console.log('donationService saveAll error:', e);
+    console.log('donationService saveAllLocal error:', e);
     return false;
   }
 };
 
-export const getDrives = async () => loadAll();
+// ── Public reads: try real backend first, fall back to AsyncStorage ──
+export const getDrives = async () => {
+  try {
+    const { data } = await api.get('/donations');
+    return data.map(mapDrive);
+  } catch (e) {
+    console.log('getDrives API unavailable, using local storage:', e.message);
+    return loadAllLocal();
+  }
+};
 
 export const getActiveDrives = async () => {
-  const all = await loadAll();
+  const all = await getDrives();
   return all.filter(d => d.status !== 'Completed');
 };
 
 export const getCompletedDrives = async () => {
-  const all = await loadAll();
+  const all = await getDrives();
   return all.filter(d => d.status === 'Completed');
 };
 
 export const getDriveById = async (id) => {
-  const all = await loadAll();
-  return all.find(d => d.id === id) || null;
+  try {
+    const { data } = await api.get(`/donations/${id}`);
+    return mapDrive(data);
+  } catch (e) {
+    console.log('getDriveById API unavailable, using local storage:', e.message);
+    const all = await loadAllLocal();
+    return all.find(d => d.id === id) || null;
+  }
 };
 
 // user = পুরো লগইন করা user অবজেক্ট (id, name)
@@ -58,7 +91,22 @@ export const donate = async (driveId, user, amount) => {
     return { success: false, message: 'সঠিক পরিমাণ লিখুন' };
   }
 
-  const all = await loadAll();
+  // Try the real backend first
+  try {
+    const { data } = await api.post(`/donations/${driveId}/donate`, {
+      userId: user.id,
+      name: user.name,
+      amount: numAmount,
+    });
+    // Note: the backend itself pushes the "goal reached" notification (see routes/donations.js),
+    // so we don't push a duplicate one here on the success path.
+    return { success: true, goalReached: !!data?.goalReached };
+  } catch (apiError) {
+    console.log('donate API unavailable, falling back to local storage:', apiError.message);
+  }
+
+  // Fallback: local AsyncStorage version (original implementation)
+  const all = await loadAllLocal();
   const drive = all.find(d => d.id === driveId);
   if (!drive) return { success: false, message: 'ড্রাইভ পাওয়া যায়নি' };
   if (drive.status === 'Completed') {
@@ -85,7 +133,7 @@ export const donate = async (driveId, user, amount) => {
     };
   });
 
-  await saveAll(updated);
+  await saveAllLocal(updated);
 
   if (goalReached) {
     await pushNotification({
@@ -102,7 +150,7 @@ export const donate = async (driveId, user, amount) => {
 
 // একজন নির্দিষ্ট user-এর সব ডোনেশন হিস্ট্রি
 export const getMyDonations = async (userId) => {
-  const all = await loadAll();
+  const all = await getDrives();
   const mine = [];
   all.forEach(drive => {
     (drive.donors || []).forEach(donor => {

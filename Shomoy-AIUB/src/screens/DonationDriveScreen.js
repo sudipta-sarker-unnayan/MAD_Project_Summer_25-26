@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useReducer } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity, RefreshControl, Modal, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,19 +14,45 @@ const TABS = [
   { key: 'completed', label: 'সম্পন্ন' },
 ];
 
+// ── useReducer for the donate modal ──
+// visible / drive / amount always change together as one unit of interaction,
+// so a reducer keeps those transitions in one place instead of three separate setState calls.
+const modalInitialState = { visible: false, drive: null, amount: '' };
+
+function modalReducer(state, action) {
+  switch (action.type) {
+    case 'OPEN':
+      return { visible: true, drive: action.payload, amount: '' };
+    case 'CLOSE':
+      return modalInitialState;
+    case 'SET_AMOUNT':
+      return { ...state, amount: action.payload };
+    default:
+      return state;
+  }
+}
+
 export default function DonationDriveScreen() {
   const { user } = useAuth();
   const [drives, setDrives] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('active');
+  const [error, setError] = useState(null);
 
-  const [modal, setModal] = useState({ visible: false, drive: null, amount: '' });
+  const [modal, dispatchModal] = useReducer(modalReducer, modalInitialState);
   const [submitting, setSubmitting] = useState(false);
 
   const load = useCallback(async () => {
-    setDrives(await getDrives());
-    setLoading(false);
+    try {
+      setError(null);
+      setDrives(await getDrives());
+    } catch (e) {
+      console.log('DonationDriveScreen load error:', e.message);
+      setError('ড্রাইভের তথ্য লোড করা যায়নি।');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -40,8 +66,8 @@ export default function DonationDriveScreen() {
     activeTab === 'active' ? d.status !== 'Completed' : d.status === 'Completed'
   );
 
-  const openModal = (drive) => setModal({ visible: true, drive, amount: '' });
-  const closeModal = () => setModal({ visible: false, drive: null, amount: '' });
+  const openModal = (drive) => dispatchModal({ type: 'OPEN', payload: drive });
+  const closeModal = () => dispatchModal({ type: 'CLOSE' });
 
   const handleDonate = async () => {
     const res = await donate(modal.drive.id, user, modal.amount);
@@ -89,6 +115,14 @@ export default function DonationDriveScreen() {
             <SkeletonBox height={130} radius={14} style={{ marginBottom: 12 }} />
             <SkeletonBox height={130} radius={14} style={{ marginBottom: 12 }} />
           </>
+        ) : error ? (
+          <View style={styles.emptyBox}>
+            <Ionicons name="cloud-offline-outline" size={40} color={colors.danger} />
+            <Text style={styles.emptyText}>{error}</Text>
+            <TouchableOpacity onPress={load} style={styles.retryBtn} activeOpacity={0.8}>
+              <Text style={styles.retryText}>আবার চেষ্টা করুন</Text>
+            </TouchableOpacity>
+          </View>
         ) : filtered.length === 0 ? (
           <View style={styles.emptyBox}>
             <Ionicons name="heart-outline" size={40} color={colors.textMuted} />
@@ -146,7 +180,7 @@ export default function DonationDriveScreen() {
             <InputField
               label="পরিমাণ (৳)"
               value={modal.amount}
-              onChangeText={t => setModal(prev => ({ ...prev, amount: t.replace(/[^0-9]/g, '') }))}
+              onChangeText={t => dispatchModal({ type: 'SET_AMOUNT', payload: t.replace(/[^0-9]/g, '') })}
               placeholder="যেমন: 500"
               keyboardType="numeric"
               autoFocus
@@ -191,7 +225,12 @@ const styles = StyleSheet.create({
   goalText: { fontSize: 12, color: colors.textSecondary },
   donorCount: { fontSize: 11, color: colors.textMuted, marginTop: 6 },
   emptyBox: { alignItems: 'center', marginTop: 60 },
-  emptyText: { fontSize: 13, color: colors.textMuted, marginTop: 10 },
+  emptyText: { fontSize: 13, color: colors.textMuted, marginTop: 10, textAlign: 'center' },
+  retryBtn: {
+    marginTop: 16, paddingHorizontal: 20, paddingVertical: 10,
+    borderRadius: 10, borderWidth: 1, borderColor: colors.primary,
+  },
+  retryText: { fontSize: 13, fontWeight: '600', color: colors.primary },
   modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'center', padding: 24 },
   modalBox: { backgroundColor: colors.white, borderRadius: 16, padding: 20 },
   modalTitle: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginBottom: 14 },

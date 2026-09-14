@@ -16,11 +16,20 @@ export default function CommitteeApplyScreen({ route, navigation }) {
   const [loading, setLoading] = useState(true);
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
   const load = useCallback(async () => {
-    const e = await getEventById(eventId);
-    setEvent(e);
-    setLoading(false);
+    try {
+      setError(null);
+      const e = await getEventById(eventId);
+      if (!e) throw new Error('Event not found');
+      setEvent(e);
+    } catch (err) {
+      console.log('CommitteeApplyScreen load error:', err.message);
+      setError('ইভেন্টের তথ্য লোড করা যায়নি। সংযোগ চেক করুন।');
+    } finally {
+      setLoading(false);
+    }
   }, [eventId]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
@@ -44,6 +53,16 @@ export default function CommitteeApplyScreen({ route, navigation }) {
       Alert.alert('ব্যর্থ হয়েছে', res.message || 'আবেদন জমা দেওয়া যায়নি, আবার চেষ্টা করুন।');
     }
   };
+
+  if (error) {
+    return (
+      <View style={[styles.container, { alignItems: 'center', justifyContent: 'center', padding: 24 }]}>
+        <Ionicons name="cloud-offline-outline" size={40} color={colors.danger} />
+        <Text style={{ fontSize: 13, color: colors.textMuted, marginTop: 10, textAlign: 'center' }}>{error}</Text>
+        <PrimaryButton title="আবার চেষ্টা করুন" onPress={load} style={{ marginTop: 16, width: 180 }} />
+      </View>
+    );
+  }
 
   if (loading || !event) {
     return (

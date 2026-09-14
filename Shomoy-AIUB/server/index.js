@@ -6,6 +6,8 @@ const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
 const notificationRoutes = require('./routes/notifications');
 const userRoutes = require('./routes/users');
+const donationRoutes = require('./routes/donations');
+const bloodRequestRoutes = require('./routes/blood-requests');
 
 const app = express();
 
@@ -16,7 +18,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/users', userRoutes);
-// app.use('/api/donations', require('./routes/donations')); // গ্রুপমেট এইটা বানাবে
+app.use('/api/donations', donationRoutes);
+app.use('/api/blood-requests', bloodRequestRoutes);
 
 app.get('/', (req, res) => res.json({ status: 'Shomoy API running' }));
 

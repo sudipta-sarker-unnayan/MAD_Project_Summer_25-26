@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
@@ -16,15 +16,73 @@ export default function EventDetailScreen({ route, navigation }) {
 
   const [event, setEvent] = useState(route.params?.event || null);
   const [loading, setLoading] = useState(!route.params?.event);
+  const [error, setError] = useState(null);
+
+  const [weather, setWeather] = useState(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
 
   const load = useCallback(async () => {
     if (!eventId) return;
-    const e = await getEventById(eventId);
-    setEvent(e);
-    setLoading(false);
+    try {
+      setError(null);
+      const e = await getEventById(eventId);
+      if (!e) throw new Error('Event not found');
+      setEvent(e);
+    } catch (err) {
+      console.log('EventDetailScreen load error:', err.message);
+      setError('ইভেন্ট লোড করা যায়নি। ইন্টারনেট/সার্ভার সংযোগ চেক করুন।');
+    } finally {
+      setLoading(false);
+    }
   }, [eventId]);
 
   useFocusEffect(useCallback(() => { load(); }, [load]));
+
+  // Public REST API call — Open-Meteo (free, no API key required)
+  // Shows live Dhaka weather since all club events currently happen on-campus.
+  useEffect(() => {
+    const fetchWeather = async () => {
+      setWeatherLoading(true);
+      try {
+        const DHAKA_LAT = 23.8103;
+        const DHAKA_LON = 90.4125;
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${DHAKA_LAT}&longitude=${DHAKA_LON}&current_weather=true`;
+        const res = await fetch(url);
+        const data = await res.json();
+        if (data?.current_weather) {
+          setWeather({
+            temp: Math.round(data.current_weather.temperature),
+            code: data.current_weather.weathercode,
+          });
+        }
+      } catch (e) {
+        console.log('Weather API error:', e.message);
+        setWeather(null);
+      } finally {
+        setWeatherLoading(false);
+      }
+    };
+    fetchWeather();
+  }, []);
+
+  const weatherInfo = (code) => {
+    if (code === 0) return { label: 'পরিষ্কার আকাশ', icon: 'sunny-outline' };
+    if (code <= 3) return { label: 'আংশিক মেঘলা', icon: 'partly-sunny-outline' };
+    if (code <= 48) return { label: 'কুয়াশাচ্ছন্ন', icon: 'cloud-outline' };
+    if (code <= 67) return { label: 'বৃষ্টি হতে পারে', icon: 'rainy-outline' };
+    if (code <= 82) return { label: 'ভারী বৃষ্টি', icon: 'thunderstorm-outline' };
+    return { label: 'ঝড়ো আবহাওয়া', icon: 'thunderstorm-outline' };
+  };
+
+  if (error) {
+    return (
+      <View style={[styles.container, styles.centerBox]}>
+        <Ionicons name="cloud-offline-outline" size={40} color={colors.danger} />
+        <Text style={styles.errorText}>{error}</Text>
+        <PrimaryButton title="আবার চেষ্টা করুন" onPress={load} style={{ marginTop: 16, width: 180 }} />
+      </View>
+    );
+  }
 
   if (loading || !event) {
     return (
@@ -67,6 +125,21 @@ export default function EventDetailScreen({ route, navigation }) {
       <View style={styles.locationRow}>
         <Ionicons name="location-outline" size={14} color={colors.textSecondary} />
         <Text style={styles.locationText}>{event.location}</Text>
+      </View>
+
+      <View style={styles.weatherBox}>
+        {weatherLoading ? (
+          <SkeletonBox height={20} radius={6} width="70%" />
+        ) : weather ? (
+          <>
+            <Ionicons name={weatherInfo(weather.code).icon} size={18} color={colors.primary} />
+            <Text style={styles.weatherText}>
+              ঢাকায় বর্তমান তাপমাত্রা {weather.temp}°C · {weatherInfo(weather.code).label}
+            </Text>
+          </>
+        ) : (
+          <Text style={styles.weatherUnavailable}>আবহাওয়ার তথ্য এই মুহূর্তে পাওয়া যাচ্ছে না</Text>
+        )}
       </View>
 
       {!!event.description && (
@@ -167,4 +240,12 @@ const styles = StyleSheet.create({
   appliedMeta: { fontSize: 12, color: colors.textSecondary },
   deadlineText: { fontSize: 12, color: colors.warning, fontWeight: '600' },
   closedText: { fontSize: 12, color: colors.textMuted, marginTop: 8, textAlign: 'center' },
+  weatherBox: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: colors.primary + '10', borderRadius: 10, padding: 10, marginBottom: 16,
+  },
+  weatherText: { fontSize: 12, color: colors.textPrimary, fontWeight: '500' },
+  weatherUnavailable: { fontSize: 12, color: colors.textMuted },
+  centerBox: { alignItems: 'center', justifyContent: 'center', padding: 24 },
+  errorText: { fontSize: 13, color: colors.textMuted, marginTop: 10, textAlign: 'center' },
 });
